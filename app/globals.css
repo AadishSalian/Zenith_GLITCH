@@ -179,6 +179,15 @@ body {
   font-family: var(--font-inter), sans-serif !important;
   border: none !important;
   outline: none !important;
+  pointer-events: auto !important;
+}
+
+.leaflet-control-container,
+.leaflet-control,
+.leaflet-interactive,
+.leaflet-pane,
+.leaflet-tile-container {
+  pointer-events: auto !important;
 }
 
 .base-map-tiles {
@@ -261,6 +270,16 @@ body {
   pointer-events: none;
 }
 
+.starfield-layer {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .stars-1 {
   background-image: 
     radial-gradient(1px 1px at 25px 35px, #ffffff, rgba(0,0,0,0)),
@@ -270,9 +289,9 @@ body {
     radial-gradient(1px 1px at 130px 220px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(1px 1px at 170px 60px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(2px 2px at 220px 100px, rgba(255, 255, 255, 0.7), rgba(0,0,0,0));
-  background-size: 240px 240px;
-  animation: starfield-drift-slow 180s linear infinite;
-  opacity: 0.3;
+  background-size: 300px 300px;
+  animation: star-drift-slow 150s linear infinite;
+  opacity: 0.35;
 }
 
 .stars-2 {
@@ -282,9 +301,9 @@ body {
     radial-gradient(1px 1px at 115px 115px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(1px 1px at 135px 165px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(2px 2px at 180px 45px, rgba(167, 139, 250, 0.5), rgba(0,0,0,0));
-  background-size: 320px 320px;
-  animation: starfield-drift-mid 120s linear infinite;
-  opacity: 0.2;
+  background-size: 400px 400px;
+  animation: star-drift-mid 100s linear infinite;
+  opacity: 0.25;
 }
 
 .stars-3 {
@@ -293,9 +312,9 @@ body {
     radial-gradient(1px 1px at 95px 25px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(1.5px 1.5px at 155px 125px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(1px 1px at 190px 195px, #ffffff, rgba(0,0,0,0));
-  background-size: 280px 280px;
-  animation: starfield-drift-fast 80s linear infinite;
-  opacity: 0.15;
+  background-size: 350px 350px;
+  animation: star-drift-fast 60s linear infinite;
+  opacity: 0.2;
 }
 
 .shooting-star {
@@ -375,35 +394,35 @@ body {
   animation-delay: 2.5s;
 }
 
-@keyframes starfield-drift-slow {
-  from { background-position: 0 0; }
-  to { background-position: 240px -240px; }
+@keyframes star-drift-slow {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(300px, -300px, 0); }
 }
 
-@keyframes starfield-drift-mid {
-  from { background-position: 0 0; }
-  to { background-position: 320px -320px; }
+@keyframes star-drift-mid {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(400px, -400px, 0); }
 }
 
-@keyframes starfield-drift-fast {
-  from { background-position: 0 0; }
-  to { background-position: 280px -280px; }
+@keyframes star-drift-fast {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(350px, -350px, 0); }
 }
 
 @keyframes shoot {
   0% {
-    transform: rotate(45deg) translate(0, 0);
+    transform: rotate(45deg) translate3d(0, 0, 0);
     opacity: 0;
   }
   1% {
     opacity: 1;
   }
   6% {
-    transform: rotate(45deg) translate(700px, 0);
+    transform: rotate(45deg) translate3d(700px, 0, 0);
     opacity: 0;
   }
   100% {
-    transform: rotate(45deg) translate(700px, 0);
+    transform: rotate(45deg) translate3d(700px, 0, 0);
     opacity: 0;
   }
 }

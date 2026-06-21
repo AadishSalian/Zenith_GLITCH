@@ -118,6 +118,11 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       center: [activeLocationRef.current.lat, activeLocationRef.current.lng],
       zoom: 2,
       zoomControl: true,
+      dragging: true,
+      touchZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      keyboard: true,
       minZoom: 1,
       maxZoom: 12,
       attributionControl: true,
@@ -343,10 +348,10 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       <div className="absolute inset-x-0 h-1 bg-[#00f3ff]/10 blur-[1px] scanline-scanner pointer-events-none" />
 
       {/* Dynamic Starfield Background Layers */}
-      <div className="starfield pointer-events-none absolute inset-0 z-0">
-        <div className="stars-1 absolute inset-0" />
-        <div className="stars-2 absolute inset-0" />
-        <div className="stars-3 absolute inset-0" />
+      <div className="starfield pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="starfield-layer stars-1" />
+        <div className="starfield-layer stars-2" />
+        <div className="starfield-layer stars-3" />
         <div className="shooting-star shooting-star-1 absolute" />
         <div className="shooting-star shooting-star-2 absolute" />
         <div className="shooting-star shooting-star-3 absolute" />
@@ -418,14 +423,15 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
                   )}
                 </div>
 
-                {/* Clickable World Map Container */}
-                <div 
-                  ref={mapRef}
-                  className="relative aspect-[2/1] w-full bg-[#020612] z-10 map-container-cyber"
-                  style={{ minHeight: "260px" }}
-                >
+                {/* Map Wrapper with border integration */}
+                <div className="relative aspect-[2/1] w-full map-container-cyber" style={{ minHeight: "260px" }}>
+                  {/* Clickable World Map Container */}
+                  <div 
+                    ref={mapRef}
+                    className="w-full h-full bg-[#020612] z-10"
+                  />
                   {/* Cybernetic map grid lines overlay */}
-                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.04)_1px,transparent_1px)] bg-[size:10%_20%] pointer-events-none z-[400]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.04)_1px,transparent_1px)] bg-[size:10%_20%] pointer-events-none z-20" />
                 </div>
 
                 <div className="text-[10px] text-slate-500 font-mono text-center">
