@@ -235,14 +235,12 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [activeLocation, setActiveLocation] = useState<Location>(LocationPresets[0]);
   const [selectedObjectId, setSelectedObjectId] = useState<string>("iss");
   const [simulationSpeed, setSimulationSpeed] = useState<number>(1);
-  const [simulationTime, setSimulationTime] = useState<number>(Date.now());
+  const [simulationTime, setSimulationTime] = useState<number>(() => Date.now());
   const [crtEnabled, setCrtEnabled] = useState<boolean>(false);
   const [hudGridEnabled, setHudGridEnabled] = useState<boolean>(true);
   const [trackingActive, setTrackingActive] = useState<boolean>(true);
-  const [positions, setPositions] = useState<Record<string, ObjectPosition>>({});
-  const [issPasses, setIssPasses] = useState<Array<{ start: number; maxEl: number; durationSec: number }>>([]);
 
-  const lastTickRef = useRef<number>(Date.now());
+  const lastTickRef = useRef<number>(0);
 
   // Clock tick effect supporting time warp speed
   useEffect(() => {
@@ -261,8 +259,8 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => clearInterval(interval);
   }, [simulationSpeed, trackingActive]);
 
-  // Compute real-time positions whenever time or location changes
-  useEffect(() => {
+  // Derive real-time positions whenever time or location changes
+  const positions = React.useMemo(() => {
     const nextPositions: Record<string, ObjectPosition> = {};
 
     TrackedObjects.forEach((obj) => {
@@ -302,14 +300,14 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     });
 
-    setPositions(nextPositions);
+    return nextPositions;
   }, [simulationTime, activeLocation]);
 
-  // Calculate upcoming passes for ISS based on active coordinates
-  useEffect(() => {
+  // Derive upcoming passes for ISS based on active coordinates
+  const issPasses = React.useMemo(() => {
     // Generate simulated upcoming passes for the ISS above active coordinates
     const passes = [];
-    const baseTime = Date.now();
+    const baseTime = simulationTime;
     const periodMs = 92.8 * 60 * 1000; // 92.8 minutes
     
     // Check next 4 orbits
@@ -327,8 +325,8 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
     }
 
-    setIssPasses(passes);
-  }, [activeLocation]);
+    return passes;
+  }, [activeLocation, simulationTime]);
 
   return (
     <SpaceTrackerContext.Provider

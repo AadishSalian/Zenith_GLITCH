@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useSpaceTracker } from "./SpaceTrackerContext";
-import { Radio, Users, Cpu, Sun, Clock, Zap, Target, TrendingUp } from "lucide-react";
+import { Radio, Users, Cpu, Sun, Clock, Target, TrendingUp } from "lucide-react";
 
 export const ISSTracker: React.FC = () => {
   const {
-    activeLocation,
     selectedObjectId,
     trackedObjects,
     positions,
@@ -19,13 +18,11 @@ export const ISSTracker: React.FC = () => {
   const position = positions[selectedObjectId];
   
   const [solarPanelAngle, setSolarPanelAngle] = useState<number>(0);
-  const [commsFlicker, setCommsFlicker] = useState<boolean>(false);
 
   // Animate solar panel tracker
   useEffect(() => {
     const timer = setInterval(() => {
       setSolarPanelAngle((prev) => (prev + 0.5) % 360);
-      setCommsFlicker((prev) => !prev);
     }, 1000);
     return () => clearInterval(timer);
   }, []);

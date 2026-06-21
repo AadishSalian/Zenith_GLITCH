@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSpaceTracker, TrackedObject } from "./SpaceTrackerContext";
+import { useSpaceTracker } from "./SpaceTrackerContext";
 import { Eye, ShieldAlert, Sparkles, Orbit, Compass } from "lucide-react";
 
 export const PlanetTracker: React.FC = () => {

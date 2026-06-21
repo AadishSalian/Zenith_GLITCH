@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { useSpaceTracker } from "./SpaceTrackerContext";
-import { Orbit, Activity, Shield, RefreshCw } from "lucide-react";
+import { Orbit } from "lucide-react";
 
 export const SkyChart: React.FC = () => {
   const {

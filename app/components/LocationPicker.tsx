@@ -65,7 +65,7 @@ export const LocationPicker: React.FC = () => {
           setSuccessMsg(true);
           setTimeout(() => setSuccessMsg(false), 2000);
         },
-        (err) => {
+        () => {
           setErrorMsg("Failed to sync GPS. Please check permissions or type manually.");
           setGpsDetecting(false);
         },
