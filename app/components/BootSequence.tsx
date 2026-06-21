@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useSpaceTracker } from "./SpaceTrackerContext";
+import { useSpaceTracker, Location } from "./SpaceTrackerContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Check, 
@@ -163,6 +163,8 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       text: `Geodetic lock: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E`,
       error: false,
     });
+  };
+
   // Select a preset spaceport
   const handlePresetSelect = (preset: Location) => {
     setActiveLocation(preset);
@@ -440,7 +442,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
                         🇰🇿 BAIKONUR
                       </button>
                       <button 
-                        onClick={() => handlePresetSelect(preset => preset.label === "Guiana Space Centre" ? preset : locationPresets[3])}
+                        onClick={() => handlePresetSelect(locationPresets[3])}
                         className={`py-1.5 px-2 rounded font-sans text-[9px] text-left border ${
                           activeLocation.label === "Guiana Space Centre"
                             ? "bg-[#0b1b36] border-[#00f3ff] text-[#00f3ff]"
