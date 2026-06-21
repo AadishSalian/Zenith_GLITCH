@@ -70,6 +70,102 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchFeedback, setSearchFeedback] = useState<{ text: string; error: boolean } | null>(null);
 
+  // Leaflet refs
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const LRef = useRef<any>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+
+  // Load Leaflet dynamically
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      import("leaflet").then((leaflet) => {
+        LRef.current = leaflet.default || leaflet;
+        setLeafletLoaded(true);
+      });
+    }
+  }, []);
+
+  // Initialize Leaflet map
+  useEffect(() => {
+    if (!leafletLoaded || !mapRef.current || mapInstanceRef.current) return;
+    const L = LRef.current;
+
+    const pulseIcon = L.divIcon({
+      className: "custom-leaflet-pulse-icon",
+      html: `<div class="relative w-6 h-6 flex items-center justify-center pointer-events-none">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ff007f] shadow-[0_0_8px_#ff007f] z-10"></span>
+        <span class="absolute w-6 h-6 border border-[#ff007f] rounded-full animate-ping opacity-75"></span>
+      </div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    const map = L.map(mapRef.current, {
+      center: [activeLocation.lat, activeLocation.lng],
+      zoom: 2,
+      zoomControl: true,
+      minZoom: 1,
+      maxZoom: 12,
+      attributionControl: true
+    });
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+
+    const marker = L.marker([activeLocation.lat, activeLocation.lng], { icon: pulseIcon }).addTo(map);
+
+    mapInstanceRef.current = map;
+    markerRef.current = marker;
+
+    map.on("click", (e: any) => {
+      const { lat, lng } = e.latlng;
+      const latFixed = parseFloat(lat.toFixed(4));
+      const lngFixed = parseFloat(lng.toFixed(4));
+
+      setActiveLocation({
+        lat: latFixed,
+        lng: lngFixed,
+        label: "Custom Target Lock",
+        country: "Custom Coordinates",
+        flag: "📍",
+      });
+
+      setSearchFeedback({
+        text: `Geodetic lock: ${latFixed}° N, ${lngFixed}° E`,
+        error: false,
+      });
+    });
+
+    map.on("mousemove", (e: any) => {
+      const { lat, lng } = e.latlng;
+      setMapHoverCoords({
+        lat: parseFloat(lat.toFixed(2)),
+        lng: parseFloat(lng.toFixed(2))
+      });
+    });
+
+    map.on("mouseout", () => {
+      setMapHoverCoords(null);
+    });
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+      markerRef.current = null;
+    };
+  }, [leafletLoaded]);
+
+  // Track coordinates sync and update map display
+  useEffect(() => {
+    if (mapInstanceRef.current && markerRef.current) {
+      const latlng = [activeLocation.lat, activeLocation.lng];
+      markerRef.current.setLatLng(latlng);
+      mapInstanceRef.current.panTo(latlng);
+    }
+  }, [activeLocation.lat, activeLocation.lng]);
+
   // Start Calibration
   const handleStartCalibration = () => {
     setBootPhase("diagnostics");
@@ -138,55 +234,12 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     }
   };
 
-  // Click on World Map coordinates
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!mapRef.current) return;
-    const rect = mapRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Convert pixels to Lat/Lng (Equirectangular Projection)
-    // X [0, width] -> Lng [-180, 180]
-    // Y [0, height] -> Lat [90, -90]
-    const lng = (x / rect.width) * 360 - 180;
-    const lat = 90 - (y / rect.height) * 180;
-
-    setActiveLocation({
-      lat: parseFloat(lat.toFixed(4)),
-      lng: parseFloat(lng.toFixed(4)),
-      label: "Custom Target Lock",
-      country: "Custom Coordinates",
-      flag: "📍",
-    });
-
-    setSearchFeedback({
-      text: `Geodetic lock: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E`,
-      error: false,
-    });
-  };
-
   // Select a preset spaceport
   const handlePresetSelect = (preset: Location) => {
     setActiveLocation(preset);
     setSearchFeedback({
       text: `Target lock established: ${preset.label}, ${preset.country || ""} ${preset.flag || ""}`,
       error: false,
-    });
-  };
-
-  // Hover over World Map
-  const handleMapMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!mapRef.current) return;
-    const rect = mapRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const lng = (x / rect.width) * 360 - 180;
-    const lat = 90 - (y / rect.height) * 180;
-
-    setMapHoverCoords({
-      lat: parseFloat(lat.toFixed(2)),
-      lng: parseFloat(lng.toFixed(2)),
     });
   };
 
@@ -243,14 +296,6 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     }
   };
 
-  // Convert locked coordinate to pixel percentages
-  const getLockPositionPerc = () => {
-    const x = ((activeLocation.lng + 180) / 360) * 100;
-    const y = ((90 - activeLocation.lat) / 180) * 100;
-    return { x, y };
-  };
-
-  const lockPos = getLockPositionPerc();
 
   return (
     <div
@@ -322,51 +367,15 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
                 {/* Clickable World Map Container */}
                 <div 
                   ref={mapRef}
-                  onClick={handleMapClick}
-                  onMouseMove={handleMapMouseMove}
-                  onMouseLeave={() => setMapHoverCoords(null)}
-                  className="relative aspect-[2/1] w-full border border-slate-800 rounded-lg bg-[#020612] overflow-hidden cursor-crosshair hover:border-[#00f3ff]/40 transition-colors"
+                  className="relative aspect-[2/1] w-full border border-slate-800 rounded-lg bg-[#020612] overflow-hidden z-10"
+                  style={{ minHeight: "260px" }}
                 >
-                  {/* Map grid lines */}
-                  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:10%_20%] pointer-events-none" />
-                  
-                  {/* Simplified stylized continent outlines */}
-                  <svg className="absolute inset-0 w-full h-full text-slate-800/40 fill-transparent pointer-events-none stroke-current" strokeWidth="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    {/* Stylized geometric continent wireframes */}
-                    <polygon points="10,12 18,10 32,12 37,22 32,32 25,32 23,38 18,35 15,22" />
-                    <polygon points="28,38 35,42 34,56 31,65 29,55 28,45" />
-                    <polygon points="42,32 50,30 58,35 60,42 55,54 48,58 45,50 40,38" />
-                    <polygon points="42,20 48,15 65,12 85,15 90,22 88,32 78,35 68,38 58,30 50,32" />
-                    <polygon points="78,48 85,50 83,56 75,54" />
-                    <polygon points="32,8 38,7 35,12 30,11" />
-                    {/* Preset launchpad indicator markers */}
-                    <circle cx="27.6" cy="34.1" r="1" fill="#7c3aed" /> {/* Kennedy */}
-                    <circle cx="23.0" cy="35.6" r="1" fill="#7c3aed" /> {/* Boca Chica */}
-                    <circle cx="67.5" cy="12.3" r="1" fill="#7c3aed" /> {/* Esrange */}
-                    <circle cx="35.3" cy="47.1" r="1" fill="#7c3aed" /> {/* Guiana */}
-                    <circle cx="67.6" cy="24.5" r="1" fill="#7c3aed" /> {/* Baikonur */}
-                    <circle cx="86.4" cy="33.1" r="1" fill="#7c3aed" /> {/* Tanegashima */}
-                  </svg>
-
-                  {/* Pulsing indicator targeting crosshair on locked coordinates */}
-                  <motion.div
-                    style={{
-                      left: `${lockPos.x}%`,
-                      top: `${lockPos.y}%`,
-                    }}
-                    className="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff007f] shadow-[0_0_8px_#ff007f] z-10" />
-                    <motion.span 
-                      animate={{ scale: [1, 2.5], opacity: [0.8, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="absolute w-6 h-6 border border-[#ff007f] rounded-full"
-                    />
-                  </motion.div>
+                  {/* Cybernetic map grid lines overlay */}
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.04)_1px,transparent_1px)] bg-[size:10%_20%] pointer-events-none z-[400]" />
                 </div>
 
                 <div className="text-[10px] text-slate-500 font-mono text-center">
-                  💡 Drag crosshair or click anywhere on the target array above to align tracking coordinates
+                  💡 Zoom, drag, and click anywhere on the target array above to align geodetic tracking coordinates
                 </div>
               </div>
 
