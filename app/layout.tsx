@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Orbitron, Space_Grotesk } from "next/font/google";
+import { Orbitron, Inter } from "next/font/google";
 import "./globals.css";
 import { SpaceTrackerProvider } from "./components/SpaceTrackerContext";
 
@@ -9,10 +9,10 @@ const orbitron = Orbitron({
   weight: ["400", "500", "700", "900"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${orbitron.variable} ${spaceGrotesk.variable} h-full antialiased dark`}
+      className={`${orbitron.variable} ${inter.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-[#020205] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff]">
         <SpaceTrackerProvider>

@@ -434,19 +434,22 @@ export const SkyChart: React.FC = () => {
   const canvasSize = 400;
 
   return (
-    <div className="glass-panel glow-border-purple rounded-xl p-5 flex flex-col items-center justify-between relative h-full">
+    <div className="bg-[#030816] border border-[#101b33] rounded-xl p-5 flex flex-col items-center justify-between relative h-full select-none font-sans">
+      
       {/* HUD Headers */}
-      <div className="w-full flex items-center justify-between border-b border-[#7c3aed]/10 pb-3 mb-2.5">
-        <div className="flex items-center gap-2">
-          <Orbit className="w-5 h-5 text-[#7c3aed] animate-[spin_6s_linear_infinite]" />
-          <h2 className="font-mono text-sm font-semibold tracking-wider text-[#7c3aed] uppercase">
-            3D Dome Calibration Array
+      <div className="w-full flex flex-col gap-0.5 border-b border-[#101b33] pb-3 mb-2.5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[#a78bfa] font-bold text-sm tracking-wide uppercase flex items-center gap-2">
+            <Orbit className="w-4 h-4 text-[#a78bfa] animate-[spin_10s_linear_infinite]" />
+            3D Dome Calibration
           </h2>
+          <div className="flex items-center gap-1.5 text-[9px] text-[#ededed]/60 uppercase tracking-widest font-mono">
+            <span>ZENITH</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 font-mono text-[9px] text-[#ededed]/60 uppercase">
-          <span>GRID LOCK:</span>
-          <span className="text-[#00f3ff] font-bold">AZIMUTHAL EQUATORIAL</span>
-        </div>
+        <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider leading-none mt-1 pl-6">
+          Celestial Reference Frame
+        </span>
       </div>
 
       {/* Canvas container with 3D hover tilt effect */}
@@ -459,7 +462,7 @@ export const SkyChart: React.FC = () => {
           transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
           transition: "transform 0.1s ease-out",
         }}
-        className="relative cursor-crosshair flex items-center justify-center p-6 border border-white/5 rounded-full bg-[#05050d]/80 overflow-hidden group shadow-[0_0_20px_rgba(124,58,237,0.02)] hover:shadow-[0_0_35px_rgba(124,58,237,0.06)]"
+        className="relative cursor-crosshair flex items-center justify-center p-4 border border-[#101b33] rounded-full bg-[#050b18]/80 overflow-hidden group shadow-[0_0_20px_rgba(124,58,237,0.01)]"
       >
         {/* Radar rotating glass reflection */}
         <div className="absolute inset-0 bg-gradient-to-tr from-[#7c3aed]/2 via-transparent to-[#00f3ff]/2 pointer-events-none rounded-full" />
@@ -481,10 +484,30 @@ export const SkyChart: React.FC = () => {
         )}
       </div>
 
+      {/* Stats Row from mockup */}
+      <div className="w-full grid grid-cols-4 gap-2 bg-[#050b18]/65 border border-[#101b33] rounded-lg p-3 text-center my-3">
+        <div className="flex flex-col gap-0.5 border-r border-[#101b33] last:border-r-0">
+          <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold leading-none">Dome Status</span>
+          <span className="text-emerald-400 font-bold text-[10px] uppercase mt-1 leading-none">Calibrated</span>
+        </div>
+        <div className="flex flex-col gap-0.5 border-r border-[#101b33] last:border-r-0">
+          <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold leading-none">Accuracy</span>
+          <span className="text-amber-400 font-bold text-[10px] uppercase mt-1 leading-none">0.32°</span>
+        </div>
+        <div className="flex flex-col gap-0.5 border-r border-[#101b33] last:border-r-0">
+          <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold leading-none">Sync</span>
+          <span className="text-[#22c55e] font-bold text-[10px] uppercase mt-1 leading-none">Locked</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold leading-none">Grid</span>
+          <span className="text-[#00f3ff] font-bold text-[10px] uppercase mt-1 leading-none">Active</span>
+        </div>
+      </div>
+
       {/* Legend display */}
-      <div className="w-full grid grid-cols-4 gap-1.5 font-mono text-[8px] text-[#ededed]/60 pt-4 border-t border-white/5">
+      <div className="w-full grid grid-cols-4 gap-1 text-[8px] text-[#ededed]/50 pt-3 border-t border-[#101b33]">
         <div className="flex items-center gap-1.5 justify-center">
-          <span className="w-1.5 h-1.5 bg-[#00f3ff] rounded-full animate-ping" />
+          <span className="w-1.5 h-1.5 bg-[#00f3ff] rounded-full animate-pulse" />
           <span>ISS SPACE LAB</span>
         </div>
         <div className="flex items-center gap-1.5 justify-center">
