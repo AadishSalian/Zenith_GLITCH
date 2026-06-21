@@ -177,16 +177,18 @@ body {
 .leaflet-container {
   background-color: #020612 !important;
   font-family: var(--font-inter), sans-serif !important;
+  border: none !important;
+  outline: none !important;
 }
 
 .leaflet-tile {
-  filter: brightness(0.65) contrast(1.1) saturate(0.8) hue-rotate(200deg) invert(1) !important;
-  opacity: 0.9;
+  filter: brightness(0.7) contrast(1.35) saturate(1.1) hue-rotate(195deg) !important;
+  opacity: 0.95;
 }
 
 .leaflet-control-zoom {
-  border: 1px solid rgba(16, 27, 51, 0.8) !important;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.1) !important;
+  border: 1px solid rgba(0, 243, 255, 0.3) !important;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.15) !important;
 }
 
 .leaflet-control-zoom-in,
@@ -206,6 +208,7 @@ body {
 .leaflet-bar {
   border-radius: 6px !important;
   overflow: hidden !important;
+  border: none !important;
 }
 
 .leaflet-attribution-control {
@@ -232,5 +235,117 @@ body {
   border-left: 1px solid rgba(0, 243, 255, 0.2) !important;
   border-bottom: 1px solid rgba(0, 243, 255, 0.2) !important;
 }
+
+/* Map Cyber Border Integration */
+.map-container-cyber {
+  border: 1px solid rgba(0, 243, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.15), inset 0 0 10px rgba(0, 243, 255, 0.05) !important;
+  overflow: hidden !important;
+}
+
+/* Dynamic Starfield Background Animations */
+.starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stars-1 {
+  background-image: 
+    radial-gradient(1px 1px at 25px 35px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 60px 80px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 75px 170px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 100px 130px, rgba(255, 255, 255, 0.8), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 130px 220px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 170px 60px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 220px 100px, rgba(255, 255, 255, 0.7), rgba(0,0,0,0));
+  background-size: 240px 240px;
+  animation: starfield-drift-slow 180s linear infinite;
+  opacity: 0.3;
+}
+
+.stars-2 {
+  background-image: 
+    radial-gradient(1px 1px at 15px 15px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 45px 55px, rgba(0, 243, 255, 0.6), rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 115px 115px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 135px 165px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 180px 45px, rgba(167, 139, 250, 0.5), rgba(0,0,0,0));
+  background-size: 320px 320px;
+  animation: starfield-drift-mid 120s linear infinite;
+  opacity: 0.2;
+}
+
+.stars-3 {
+  background-image: 
+    radial-gradient(1px 1px at 8px 45px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 95px 25px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 155px 125px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 190px 195px, #ffffff, rgba(0,0,0,0));
+  background-size: 280px 280px;
+  animation: starfield-drift-fast 80s linear infinite;
+  opacity: 0.15;
+}
+
+.shooting-star {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 150px;
+  height: 1.5px;
+  background: linear-gradient(90deg, rgba(0, 243, 255, 0.8), transparent);
+  transform: rotate(45deg);
+  animation: shoot 10s linear infinite;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.shooting-star-2 {
+  animation-delay: 4.5s;
+  top: 15%;
+  left: -5%;
+  width: 120px;
+  animation-duration: 14s;
+  background: linear-gradient(90deg, rgba(255, 0, 127, 0.7), transparent);
+}
+
+@keyframes starfield-drift-slow {
+  from { background-position: 0 0; }
+  to { background-position: 240px -240px; }
+}
+
+@keyframes starfield-drift-mid {
+  from { background-position: 0 0; }
+  to { background-position: 320px -320px; }
+}
+
+@keyframes starfield-drift-fast {
+  from { background-position: 0 0; }
+  to { background-position: 280px -280px; }
+}
+
+@keyframes shoot {
+  0% {
+    transform: translate(0, 0) rotate(45deg);
+    opacity: 0;
+  }
+  1% {
+    opacity: 0.9;
+  }
+  6% {
+    transform: translate(800px, 800px) rotate(45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(800px, 800px) rotate(45deg);
+    opacity: 0;
+  }
+}
+
 
 

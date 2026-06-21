@@ -312,7 +312,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020612] space-grid overflow-hidden transition-all duration-1000 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center bg-[#020612] space-grid overflow-hidden transition-all duration-1000 ${
         glitchActive ? "scale-105 opacity-0 brightness-150 filter saturate-200" : ""
       }`}
     >
@@ -320,37 +320,50 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-[#020612] via-transparent to-[#020612] pointer-events-none" />
       <div className="absolute inset-x-0 h-1 bg-[#00f3ff]/10 blur-[1px] scanline-scanner pointer-events-none" />
 
-      {/* Futuristic top diagnostics */}
-      <div className="absolute top-8 left-8 flex items-center gap-3 font-mono text-xs tracking-[0.2em] text-[#00f3ff]/60">
-        <Compass className="w-4 h-4 animate-pulse" />
-        <span>BOOT_SYS // ORBIT.ARRAY_INIT</span>
+      {/* Dynamic Starfield Background Layers */}
+      <div className="starfield pointer-events-none absolute inset-0 z-0">
+        <div className="stars-1 absolute inset-0" />
+        <div className="stars-2 absolute inset-0" />
+        <div className="stars-3 absolute inset-0" />
+        <div className="shooting-star absolute" />
+        <div className="shooting-star shooting-star-2 absolute" />
       </div>
 
-      <div className="absolute top-8 right-8 font-mono text-xs tracking-[0.2em] text-[#a78bfa]/60">
-        <span>Observer Locked: [ {activeLocation.lat.toFixed(4)}, {activeLocation.lng.toFixed(4)} ]</span>
-      </div>
+      {/* Top Header Bar */}
+      <header className="w-full max-w-7xl px-8 pt-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-4 z-20 border-b border-[#101b33]/30 bg-gradient-to-b from-[#030816]/45 to-transparent backdrop-blur-sm shrink-0">
+        {/* Left: System state */}
+        <div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.15em] text-[#00f3ff]/70 md:w-1/3 justify-start">
+          <Compass className="w-3.5 h-3.5 text-[#00f3ff] animate-pulse" />
+          <span>BOOT_SYS // ORBIT.ARRAY_INIT</span>
+        </div>
+
+        {/* Center: Main title & subtitle */}
+        <div className="text-center md:w-1/3 flex flex-col items-center">
+          <motion.h1 
+            animate={{ textShadow: ["0 0 10px rgba(0,243,255,0.2)", "0 0 20px rgba(0,243,255,0.4)", "0 0 10px rgba(0,243,255,0.2)"] }}
+            transition={{ repeat: Infinity, duration: 4 }}
+            className="font-mono text-xl md:text-2xl font-black tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-[#00f3ff] via-[#a78bfa] to-[#ff007f] filter drop-shadow-[0_0_12px_rgba(0,243,255,0.25)]"
+          >
+            ZENITH GLITCH
+          </motion.h1>
+          <p className="mt-1 text-[9px] font-mono tracking-[0.3em] text-slate-500 uppercase">
+            GEODETIC COORDINATE TRACKING SYSTEM
+          </p>
+        </div>
+
+        {/* Right: Observer lock */}
+        <div className="font-mono text-[11px] tracking-[0.15em] text-[#a78bfa]/70 md:w-1/3 text-center md:text-right">
+          <span>Observer Locked: [ {activeLocation.lat.toFixed(4)}, {activeLocation.lng.toFixed(4)} ]</span>
+        </div>
+      </header>
 
       {/* Main Container Overlay with Framer Motion */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-4xl px-6 flex flex-col items-center relative z-10 gap-8"
+        className="w-full max-w-4xl px-6 flex-1 flex flex-col items-center justify-center relative z-10 gap-6 mt-4"
       >
-        
-        {/* Main Title branding */}
-        <div className="text-center">
-          <motion.h1 
-            animate={{ textShadow: ["0 0 10px rgba(0,243,255,0.2)", "0 0 25px rgba(0,243,255,0.6)", "0 0 10px rgba(0,243,255,0.2)"] }}
-            transition={{ repeat: Infinity, duration: 4 }}
-            className="font-mono text-3xl md:text-5xl font-black tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-[#00f3ff] via-[#a78bfa] to-[#ff007f] filter drop-shadow-[0_0_15px_rgba(0,243,255,0.4)]"
-          >
-            ZENITH GLITCH
-          </motion.h1>
-          <p className="mt-2 text-xs font-mono tracking-[0.4em] text-slate-500 uppercase">
-            GEODETIC COORDINATE TRACKING SYSTEM
-          </p>
-        </div>
 
         {/* Phase Interfaces container */}
         <AnimatePresence mode="wait">
@@ -380,7 +393,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
                 {/* Clickable World Map Container */}
                 <div 
                   ref={mapRef}
-                  className="relative aspect-[2/1] w-full border border-slate-800 rounded-lg bg-[#020612] overflow-hidden z-10"
+                  className="relative aspect-[2/1] w-full bg-[#020612] z-10 map-container-cyber"
                   style={{ minHeight: "260px" }}
                 >
                   {/* Cybernetic map grid lines overlay */}
