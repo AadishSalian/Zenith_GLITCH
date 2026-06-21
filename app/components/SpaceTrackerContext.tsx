@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useEffect, useRef } from "react";
 import { useSpaceTrackerStore } from "../store/spaceTrackerStore";
 
 export interface Location {
@@ -269,7 +269,7 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, 100);
 
     return () => clearInterval(interval);
-  }, [simulationSpeed, trackingActive]);
+  }, [simulationSpeed, trackingActive, setSimulationTime]);
 
   // Derive real-time positions whenever time or location changes
   const positions = React.useMemo(() => {
