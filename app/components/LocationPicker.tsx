@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSpaceTracker, Location } from "./SpaceTrackerContext";
-import { MapPin, Navigation, Compass, Globe, Check, AlertCircle } from "lucide-react";
+import { Navigation, Globe, Check, AlertCircle } from "lucide-react";
 
 export const LocationPicker: React.FC = () => {
   const { activeLocation, setActiveLocation, locationPresets } = useSpaceTracker();
@@ -14,13 +14,6 @@ export const LocationPicker: React.FC = () => {
   const [gpsDetecting, setGpsDetecting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<boolean>(false);
-
-  // Keep state inputs aligned when activeLocation changes from presets
-  useEffect(() => {
-    setLatInput(activeLocation.lat.toString());
-    setLngInput(activeLocation.lng.toString());
-    setLabelInput(activeLocation.label);
-  }, [activeLocation]);
 
   // Formatter for coordinates display inside buttons
   const formatLat = (lat: number) => {

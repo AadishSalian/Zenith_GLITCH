@@ -42,7 +42,7 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
                 Target Telemetry Lock
               </h2>
               <span className="text-slate-500 text-[9px] font-mono tracking-widest mt-1 block">
-                ID: {activeObj.id.toUpperCase()} // CLASS: {activeObj.type.toUpperCase()}
+                ID: {activeObj.id.toUpperCase()} ‖ CLASS: {activeObj.type.toUpperCase()}
               </span>
             </div>
           </div>
@@ -66,14 +66,14 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
 
         {/* Drawer Footer */}
         <div className="border-t border-[#101b33] pt-4 font-mono text-[8px] text-slate-500 text-center tracking-widest uppercase">
-          Zenith Array Connection // Downlink Secured
+          {"Zenith Array Connection // Downlink Secured"}
         </div>
       </div>
 
       {/* Floating pull tab when drawer is closed and object is locked */}
       {!isOpen && (
         <button
-          onClick={onClose} // toggles open state
+          onClick={onClose}
           className="fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-[#00f3ff] hover:bg-[#00e0eb] text-[#020206] py-3.5 px-2 rounded-l-xl shadow-2xl transition-all duration-300 flex flex-col items-center gap-1.5 font-sans font-bold text-[9px] tracking-wider uppercase cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4 animate-bounce" />

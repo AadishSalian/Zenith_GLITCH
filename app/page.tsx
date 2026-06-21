@@ -21,8 +21,6 @@ import {
   Map,
   Bell,
   Settings,
-  Shield,
-  Heart,
   Target
 } from "lucide-react";
 
@@ -50,7 +48,10 @@ export default function Home() {
   // Watch selectedObjectId: auto-open the drawer when a new target is locked
   useEffect(() => {
     if (booted && selectedObjectId) {
-      setDrawerOpen(true);
+      const timer = setTimeout(() => {
+        setDrawerOpen(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [selectedObjectId, booted]);
 
@@ -286,7 +287,7 @@ export default function Home() {
           
           {/* Column 1: Coordinates Lock picker (col-span-5) */}
           <section className="xl:col-span-5 flex flex-col gap-6">
-            <LocationPicker />
+            <LocationPicker key={`${activeLocation.label}-${activeLocation.lat}-${activeLocation.lng}`} />
           </section>
 
           {/* Column 2 & 3: 3D Dome and Bottom parameters (col-span-7) */}
