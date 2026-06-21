@@ -1,65 +1,283 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useSpaceTracker } from "./components/SpaceTrackerContext";
+import { BootSequence } from "./components/BootSequence";
+import { LocationPicker } from "./components/LocationPicker";
+import { SkyChart } from "./components/SkyChart";
+import { ISSTracker } from "./components/ISSTracker";
+import { PlanetTracker } from "./components/PlanetTracker";
+import { 
+  Play, 
+  Pause, 
+  FastForward, 
+  Grid, 
+  Tv, 
+  Activity, 
+  Globe, 
+  Compass, 
+  Clock, 
+  ChevronRight, 
+  Settings 
+} from "lucide-react";
 
 export default function Home() {
+  const [booted, setBooted] = useState<boolean>(false);
+  const {
+    activeLocation,
+    selectedObjectId,
+    setSelectedObjectId,
+    simulationSpeed,
+    setSimulationSpeed,
+    simulationTime,
+    setSimulationTime,
+    crtEnabled,
+    setCrtEnabled,
+    hudGridEnabled,
+    setHudGridEnabled,
+    trackingActive,
+    setTrackingActive,
+    trackedObjects,
+    positions,
+  } = useSpaceTracker();
+
+  const [logs, setLogs] = useState<string[]>([]);
+
+  // Simulation clock formatted string
+  const formatTime = (ts: number) => {
+    return new Date(ts).toISOString().replace("T", " ").substring(0, 19) + " UTC";
+  };
+
+  // Add automated logs to the status log ticker
+  useEffect(() => {
+    if (!booted) return;
+
+    // Initial logs
+    setLogs([
+      `[${new Date().toISOString().substring(11, 19)}] Node initialized at ${activeLocation.label}`,
+      `[${new Date().toISOString().substring(11, 19)}] Geodetic star tracker aligned: index 0.9994`,
+      `[${new Date().toISOString().substring(11, 19)}] Comm lock acquired on ISS (Zarya) S-band downlink`,
+    ]);
+
+    const interval = setInterval(() => {
+      const activeObj = trackedObjects.find((o) => o.id === selectedObjectId);
+      const pos = positions[selectedObjectId];
+      const timeStr = new Date(simulationTime).toISOString().substring(11, 19);
+      
+      const logTemplates = [
+        `Telemetry frame rx: Azimuth ${pos?.azimuth.toFixed(2)}° // Elevation ${pos?.elevation.toFixed(2)}°`,
+        `Sidereal clock tick aligned with longitude ${activeLocation.lng.toFixed(2)}°`,
+        `Solar tracker efficiency calibrated: 94.8%`,
+        `Interpreting geodetic slant range: ${Math.round(pos?.range || 0).toLocaleString()} km`,
+        `LST offset drift recalculation complete`,
+        `Active target locked on: ${activeObj?.name.toUpperCase()}`,
+        `Calibration envelope stable on ${activeLocation.label.split(",")[0]} array`,
+      ];
+
+      const randomLog = logTemplates[Math.floor(Math.random() * logTemplates.length)];
+      setLogs((prev) => [`[${timeStr}] ${randomLog}`, ...prev.slice(0, 14)]);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [booted, activeLocation, selectedObjectId, simulationTime]);
+
+  if (!booted) {
+    return <BootSequence onComplete={() => setBooted(true)} />;
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className={`flex flex-col flex-1 min-h-screen ${crtEnabled ? "crt-screen" : ""} space-grid select-none`}>
+      {/* Header Deck */}
+      <header className="border-b border-[#7c3aed]/15 bg-[#020206]/85 backdrop-blur-md px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-40">
+        
+        {/* Title and active status */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#00f3ff] animate-ping" />
+            <h1 className="font-mono text-lg font-black tracking-[0.2em] text-white">
+              ZENITH <span className="text-[#00f3ff]">GLITCH</span>
+            </h1>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 border-l border-white/10 pl-4 font-mono text-[9px] text-[#ededed]/50">
+            <span>ACTIVE ARRAY:</span>
+            <span className="text-[#7c3aed] font-semibold uppercase">{activeLocation.label.split(",")[0]}</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Global Control Center */}
+        <div className="flex flex-wrap items-center gap-4">
+          
+          {/* Time warp control */}
+          <div className="flex items-center bg-[#0b0b14] border border-white/5 rounded-lg p-1 gap-1">
+            <span className="font-mono text-[8px] uppercase tracking-widest text-[#ededed]/40 px-2">Time-Warp:</span>
+            {[1, 10, 60, 600].map((speed) => (
+              <button
+                key={speed}
+                onClick={() => setSimulationSpeed(speed)}
+                className={`py-1 px-2.5 rounded text-[10px] font-mono font-bold transition-all duration-300 cursor-pointer ${
+                  simulationSpeed === speed
+                    ? "bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30"
+                    : "text-[#ededed]/60 hover:text-white border border-transparent"
+                }`}
+              >
+                {speed === 1 ? "REAL" : `${speed}x`}
+              </button>
+            ))}
+          </div>
+
+          {/* Pause / Play clock */}
+          <button
+            onClick={() => setTrackingActive(!trackingActive)}
+            className={`p-2 rounded-lg border transition-all duration-300 cursor-pointer flex items-center justify-center ${
+              trackingActive
+                ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10"
+                : "border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/10"
+            }`}
+            title={trackingActive ? "Pause clock" : "Resume clock"}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            {trackingActive ? <Play className="w-3.5 h-3.5 fill-emerald-400" /> : <Pause className="w-3.5 h-3.5 fill-amber-400" />}
+          </button>
+
+          {/* HUD Grid Overlay Toggle */}
+          <button
+            onClick={() => setHudGridEnabled(!hudGridEnabled)}
+            className={`p-2 rounded-lg border transition-all duration-300 cursor-pointer flex items-center justify-center ${
+              hudGridEnabled
+                ? "border-[#7c3aed]/30 bg-[#7c3aed]/5 text-[#7c3aed] hover:bg-[#7c3aed]/10"
+                : "border-white/5 text-[#ededed]/50 hover:text-white"
+            }`}
+            title="Toggle Grid Overlay"
           >
-            Documentation
-          </a>
+            <Grid className="w-3.5 h-3.5" />
+          </button>
+
+          {/* CRT Screen Toggle */}
+          <button
+            onClick={() => setCrtEnabled(!crtEnabled)}
+            className={`p-2 rounded-lg border transition-all duration-300 cursor-pointer flex items-center justify-center ${
+              crtEnabled
+                ? "border-[#ff007f]/30 bg-[#ff007f]/5 text-[#ff007f] hover:bg-[#ff007f]/10"
+                : "border-white/5 text-[#ededed]/50 hover:text-white"
+            }`}
+            title="Toggle CRT Screen Scanlines"
+          >
+            <Tv className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Calibration Clock Readout */}
+          <div className="bg-[#0b0b14] border border-white/5 rounded-lg px-3 py-1.5 flex items-center gap-2 text-right">
+            <Clock className="w-3.5 h-3.5 text-[#00f3ff] animate-pulse" />
+            <span className="font-mono text-xs font-semibold tracking-wider text-white">
+              {formatTime(simulationTime)}
+            </span>
+          </div>
+
         </div>
+      </header>
+
+      {/* Command Deck Grid Layout */}
+      <main className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch max-w-7xl mx-auto w-full">
+        
+        {/* Left Panel: Location Calibration (4 cols) */}
+        <section className="lg:col-span-4 flex flex-col gap-6">
+          <LocationPicker />
+          
+          {/* Geodetic Details card */}
+          <div className="glass-panel border border-white/5 rounded-xl p-5 flex flex-col gap-3 font-mono">
+            <h3 className="text-xs font-bold text-[#7c3aed] uppercase border-b border-[#7c3aed]/10 pb-2 flex items-center gap-1.5">
+              <Compass className="w-4 h-4" /> Observation Node Diagnostics
+            </h3>
+            <div className="text-[10px] space-y-2 text-[#ededed]/70">
+              <div className="flex justify-between border-b border-white/5 pb-1">
+                <span>Calibration Status:</span>
+                <span className="text-emerald-400 font-bold">OPERATIONAL</span>
+              </div>
+              <div className="flex justify-between border-b border-white/5 pb-1">
+                <span>Declination Lock:</span>
+                <span>±{Math.abs(90 - activeLocation.lat).toFixed(2)}° Horizon</span>
+              </div>
+              <div className="flex justify-between border-b border-white/5 pb-1">
+                <span>LST Sidereal Drift:</span>
+                <span>{((simulationTime / 3600000) % 24).toFixed(4)} hr</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tracking Channels:</span>
+                <span className="text-[#00f3ff]">6 Channels Active</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Middle Panel: Celestial Sky Dome tracker (4 cols) */}
+        <section className="lg:col-span-4 flex flex-col gap-6">
+          <div className="flex-grow">
+            <SkyChart />
+          </div>
+          
+          {/* Quick Target Locks list */}
+          <div className="glass-panel border border-white/5 rounded-xl p-4 flex flex-col gap-2 font-mono">
+            <span className="text-[8px] uppercase tracking-wider text-[#ededed]/40">Interactive Target locks list</span>
+            <div className="flex flex-wrap gap-1.5">
+              {trackedObjects.map((obj) => {
+                const isSelected = obj.id === selectedObjectId;
+                const isAbove = positions[obj.id]?.elevation > 0;
+                
+                let chipColor = "bg-[#0b0b14] border-white/5 text-[#ededed]/60";
+                if (isSelected) {
+                  chipColor = "bg-[#7c3aed]/15 border-[#7c3aed] text-white font-semibold";
+                } else if (isAbove) {
+                  chipColor = "border-emerald-500/20 text-emerald-400";
+                }
+
+                return (
+                  <button
+                    key={obj.id}
+                    onClick={() => setSelectedObjectId(obj.id)}
+                    className={`py-1.5 px-2.5 rounded text-[9px] border transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${chipColor}`}
+                  >
+                    <span>{obj.name}</span>
+                    <ChevronRight className="w-2.5 h-2.5 opacity-40" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Right Panel: Dynamic detailed parameters card (4 cols) */}
+        <section className="lg:col-span-4 flex flex-col gap-6">
+          {/* Render both, with active one highlighted or side-by-side inside tabs, or adapt stack */}
+          <div className="flex-1">
+            <ISSTracker />
+          </div>
+          <div className="flex-1">
+            <PlanetTracker />
+          </div>
+        </section>
       </main>
+
+      {/* Scrolling Diagnostic logs ticker */}
+      <footer className="border-t border-[#7c3aed]/15 bg-[#020206]/90 py-3.5 px-6 font-mono text-[9px] tracking-wider flex items-center justify-between gap-6 overflow-hidden">
+        <div className="flex items-center gap-2 shrink-0">
+          <Activity className="w-3.5 h-3.5 text-[#ff007f] animate-pulse" />
+          <span className="text-[#ff007f] font-semibold">DIAGNOSTIC TELEMETRY TICKER:</span>
+        </div>
+        <div className="flex-1 overflow-hidden relative h-5">
+          <div className="absolute inset-0 flex items-center">
+            {logs.length > 0 ? (
+              <span className="text-[#00f3ff] animate-[pulse_2s_infinite] truncate block">
+                {logs[0]}
+              </span>
+            ) : (
+              <span className="text-[#ededed]/40">Scanning for signal channels...</span>
+            )}
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center gap-4 text-[#ededed]/30 text-right shrink-0">
+          <span>MEM_BUFFER: 100% OK</span>
+          <span>CALIBRATION: ACTIVE</span>
+        </div>
+      </footer>
     </div>
   );
 }
