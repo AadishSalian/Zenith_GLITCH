@@ -8,6 +8,15 @@ interface BootSequenceProps {
   onComplete: () => void;
 }
 
+const diagnosticMessages = [
+  "Establishing connection to orbital array...",
+  "Syncing Local Sidereal Clock with observation point...",
+  "Calibrating celestial dome projection limits...",
+  "Caching planetary orbital vectors (Mars, Venus, Jupiter, Saturn)...",
+  "Interpolating satellite orbits (ISS inclination 51.64°)...",
+  "Synchronizing telemetry deck graphics and HUD overlays...",
+];
+
 export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const { activeLocation, setActiveLocation, locationPresets } = useSpaceTracker();
   const [bootPhase, setBootPhase] = useState<"intro" | "diagnostics" | "completed">("intro");
@@ -15,15 +24,6 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [glitchActive, setGlitchActive] = useState<boolean>(false);
   const [gpsLoading, setGpsLoading] = useState<boolean>(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
-
-  const diagnosticMessages = [
-    "Establishing connection to orbital array...",
-    "Syncing Local Sidereal Clock with observation point...",
-    "Calibrating celestial dome projection limits...",
-    "Caching planetary orbital vectors (Mars, Venus, Jupiter, Saturn)...",
-    "Interpolating satellite orbits (ISS inclination 51.64°)...",
-    "Synchronizing telemetry deck graphics and HUD overlays...",
-  ];
 
   // Geolocation trigger
   const handleGPSDetect = () => {

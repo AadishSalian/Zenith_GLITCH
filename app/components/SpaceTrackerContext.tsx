@@ -6,8 +6,10 @@ export interface Location {
   lat: number;
   lng: number;
   label: string;
+  country?: string;
+  flag?: string;
 }
-
+ 
 export interface TrackedObject {
   id: string;
   name: string;
@@ -19,7 +21,7 @@ export interface TrackedObject {
   ra?: number;  // Right Ascension in hours (0 to 24)
   dec?: number; // Declination in degrees (-90 to 90)
 }
-
+ 
 export interface ObjectPosition {
   azimuth: number;
   elevation: number;
@@ -28,7 +30,7 @@ export interface ObjectPosition {
   lng?: number;  // simulated ground track longitude
   isAboveHorizon: boolean;
 }
-
+ 
 interface SpaceTrackerContextType {
   activeLocation: Location;
   setActiveLocation: (loc: Location) => void;
@@ -49,14 +51,14 @@ interface SpaceTrackerContextType {
   positions: Record<string, ObjectPosition>;
   issPasses: Array<{ start: number; maxEl: number; durationSec: number }>;
 }
-
+ 
 const LocationPresets: Location[] = [
-  { lat: 28.5729, lng: -80.649, label: "Kennedy Space Center, USA" },
-  { lat: 25.9902, lng: -97.1561, label: "Starbase Boca Chica, USA" },
-  { lat: 67.8931, lng: 21.1042, label: "Esrange Space Center, Sweden" },
-  { lat: 5.2361, lng: -52.7684, label: "Guiana Space Centre, Kourou" },
-  { lat: -31.0486, lng: 136.7621, label: "Woomera Range Complex, Australia" },
-  { lat: 30.4002, lng: 130.9705, label: "Tanegashima Space Center, Japan" },
+  { lat: 28.5729, lng: -80.649, label: "Kennedy Space Center", country: "Florida, USA", flag: "🇺🇸" },
+  { lat: 25.9902, lng: -97.1561, label: "Starbase, Boca Chica", country: "Texas, USA", flag: "🇺🇸" },
+  { lat: 45.965, lng: 63.305, label: "Baikonur Cosmodrome", country: "Kazakhstan", flag: "🇰🇿" },
+  { lat: 5.2361, lng: -52.7684, label: "Guiana Space Centre", country: "French Guiana", flag: "🇫🇷" },
+  { lat: 67.8931, lng: 21.1042, label: "Esrange Space Center", country: "Sweden", flag: "🇸🇪" },
+  { lat: 30.4002, lng: 130.9705, label: "Tanegashima Space Center", country: "Japan", flag: "🇯🇵" },
 ];
 
 const TrackedObjects: TrackedObject[] = [

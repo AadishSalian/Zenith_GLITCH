@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSpaceTracker } from "./components/SpaceTrackerContext";
 import { BootSequence } from "./components/BootSequence";
 import { LocationPicker } from "./components/LocationPicker";
@@ -10,15 +10,12 @@ import { PlanetTracker } from "./components/PlanetTracker";
 import { 
   Play, 
   Pause, 
-  FastForward, 
   Grid, 
   Tv, 
   Activity, 
-  Globe, 
   Compass, 
   Clock, 
-  ChevronRight, 
-  Settings 
+  ChevronRight 
 } from "lucide-react";
 
 export default function Home() {
@@ -30,7 +27,6 @@ export default function Home() {
     simulationSpeed,
     setSimulationSpeed,
     simulationTime,
-    setSimulationTime,
     crtEnabled,
     setCrtEnabled,
     hudGridEnabled,
@@ -41,7 +37,19 @@ export default function Home() {
     positions,
   } = useSpaceTracker();
 
-  const [logs, setLogs] = useState<string[]>([]);
+  // Lazy initializer to seed initial logs cleanly
+  const [logs, setLogs] = useState<string[]>(() => [
+    `[00:00:00] Geodetic star tracker aligned: index 0.9994`,
+    `[00:00:00] Comm lock acquired on default satellite transponders`,
+    `[00:00:00] Space tracker dashboard systems online`,
+  ]);
+
+  // Keep a reference to the latest state to avoid restarting the interval
+  const stateRef = useRef({ selectedObjectId, activeLocation, positions, trackedObjects, simulationTime });
+  
+  useEffect(() => {
+    stateRef.current = { selectedObjectId, activeLocation, positions, trackedObjects, simulationTime };
+  }, [selectedObjectId, activeLocation, positions, trackedObjects, simulationTime]);
 
   // Simulation clock formatted string
   const formatTime = (ts: number) => {
@@ -52,26 +60,20 @@ export default function Home() {
   useEffect(() => {
     if (!booted) return;
 
-    // Initial logs
-    setLogs([
-      `[${new Date().toISOString().substring(11, 19)}] Node initialized at ${activeLocation.label}`,
-      `[${new Date().toISOString().substring(11, 19)}] Geodetic star tracker aligned: index 0.9994`,
-      `[${new Date().toISOString().substring(11, 19)}] Comm lock acquired on ISS (Zarya) S-band downlink`,
-    ]);
-
     const interval = setInterval(() => {
-      const activeObj = trackedObjects.find((o) => o.id === selectedObjectId);
-      const pos = positions[selectedObjectId];
-      const timeStr = new Date(simulationTime).toISOString().substring(11, 19);
+      const { selectedObjectId: id, activeLocation: loc, positions: posMap, trackedObjects: objs, simulationTime: time } = stateRef.current;
+      const activeObj = objs.find((o) => o.id === id);
+      const pos = posMap[id];
+      const timeStr = new Date(time).toISOString().substring(11, 19);
       
       const logTemplates = [
         `Telemetry frame rx: Azimuth ${pos?.azimuth.toFixed(2)}° // Elevation ${pos?.elevation.toFixed(2)}°`,
-        `Sidereal clock tick aligned with longitude ${activeLocation.lng.toFixed(2)}°`,
+        `Sidereal clock tick aligned with longitude ${loc.lng.toFixed(2)}°`,
         `Solar tracker efficiency calibrated: 94.8%`,
         `Interpreting geodetic slant range: ${Math.round(pos?.range || 0).toLocaleString()} km`,
         `LST offset drift recalculation complete`,
         `Active target locked on: ${activeObj?.name.toUpperCase()}`,
-        `Calibration envelope stable on ${activeLocation.label.split(",")[0]} array`,
+        `Calibration envelope stable on ${loc.label.split(",")[0]} array`,
       ];
 
       const randomLog = logTemplates[Math.floor(Math.random() * logTemplates.length)];
@@ -79,7 +81,7 @@ export default function Home() {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [booted, activeLocation, selectedObjectId, simulationTime]);
+  }, [booted]);
 
   if (!booted) {
     return <BootSequence onComplete={() => setBooted(true)} />;
