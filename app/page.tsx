@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSpaceTracker } from "./components/SpaceTrackerContext";
 import { BootSequence } from "./components/BootSequence";
+import { StarfieldCanvas } from "./components/StarfieldCanvas";
 import { LocationPicker } from "./components/LocationPicker";
 import { SkyChart } from "./components/SkyChart";
 import { TelemetryDrawer } from "./components/TelemetryDrawer";
@@ -32,31 +33,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "iss" | "planets" | "skymap" | "passes" | "settings">("dashboard");
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [hoveringBackground, setHoveringBackground] = useState<boolean>(false);
-
-  // Mouse-spawned shooting stars
-  const [mouseStars, setMouseStars] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
-  const starIdRef = useRef<number>(0);
-  const lastSpawnRef = useRef<number>(0);
-
-  const handleBackgroundMouseMove = (e: React.MouseEvent) => {
-    if (!hoveringBackground) return;
-    const now = Date.now();
-    if (now - lastSpawnRef.current > 150) {
-      lastSpawnRef.current = now;
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      const newId = starIdRef.current++;
-      const colors = ["cyan", "pink", "purple"];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      
-      setMouseStars((prev) => [...prev, { id: newId, x, y, color }]);
-      setTimeout(() => {
-        setMouseStars((prev) => prev.filter((s) => s.id !== newId));
-      }, 1200);
-    }
-  };
   const {
     activeLocation,
     selectedObjectId,
@@ -149,7 +125,6 @@ export default function Home() {
     <div 
       onMouseEnter={() => setHoveringBackground(true)}
       onMouseLeave={() => setHoveringBackground(false)}
-      onMouseMove={handleBackgroundMouseMove}
       className={`flex min-h-screen bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
     >
       
@@ -158,45 +133,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-to-tr from-[#020612] via-transparent to-[#020612]/30 pointer-events-none z-0" />
 
       {/* Dynamic Starfield Background Layers */}
-      <div className="starfield pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="starfield-layer stars-1" />
-        <div className="starfield-layer stars-2" />
-        <div className="starfield-layer stars-3" />
-        <div className="shooting-star shooting-star-1 absolute" />
-        <div className="shooting-star shooting-star-2 absolute" />
-        <div className="shooting-star shooting-star-3 absolute" />
-        <div className="shooting-star shooting-star-4 absolute" />
-        <div className="shooting-star shooting-star-5 absolute" />
-        <div className="shooting-star shooting-star-6 absolute" />
-        <div className="shooting-star shooting-star-7 absolute" />
-        <div className="shooting-star shooting-star-8 absolute" />
-        
-        {/* Extra dynamic shooting star shower triggered by background hover */}
-        {hoveringBackground && (
-          <>
-            <div className="shooting-star shooting-star-9 absolute" />
-            <div className="shooting-star shooting-star-10 absolute" />
-            <div className="shooting-star shooting-star-11 absolute" />
-            <div className="shooting-star shooting-star-12 absolute" />
-            <div className="shooting-star shooting-star-13 absolute" />
-            <div className="shooting-star shooting-star-14 absolute" />
-            <div className="shooting-star shooting-star-15 absolute" />
-            <div className="shooting-star shooting-star-16 absolute" />
-          </>
-        )}
-
-        {/* Mouse-triggered custom shooting stars */}
-        {mouseStars.map((star) => (
-          <div
-            key={star.id}
-            className={`shooting-star mouse-shooting-star mouse-shooting-star-${star.color}`}
-            style={{
-              top: `${star.y}px`,
-              left: `${star.x}px`,
-            }}
-          />
-        ))}
-      </div>
+      <StarfieldCanvas hoveringBackground={hoveringBackground} />
 
       {/* LEFT NAVIGATION SIDEBAR */}
       <aside 

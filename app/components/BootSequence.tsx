@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSpaceTracker, Location } from "./SpaceTrackerContext";
+import { StarfieldCanvas } from "./StarfieldCanvas";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Map as LeafletMap, Marker as LeafletMarker, LeafletMouseEvent } from "leaflet";
 import { 
@@ -65,31 +66,6 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [gpsLoading, setGpsLoading] = useState<boolean>(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [hoveringBackground, setHoveringBackground] = useState<boolean>(false);
-
-  // Mouse-spawned shooting stars
-  const [mouseStars, setMouseStars] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
-  const starIdRef = useRef<number>(0);
-  const lastSpawnRef = useRef<number>(0);
-
-  const handleBackgroundMouseMove = (e: React.MouseEvent) => {
-    if (!hoveringBackground) return;
-    const now = Date.now();
-    if (now - lastSpawnRef.current > 150) {
-      lastSpawnRef.current = now;
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      const newId = starIdRef.current++;
-      const colors = ["cyan", "pink", "purple"];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      
-      setMouseStars((prev) => [...prev, { id: newId, x, y, color }]);
-      setTimeout(() => {
-        setMouseStars((prev) => prev.filter((s) => s.id !== newId));
-      }, 1200);
-    }
-  };
 
   // Map state
   const mapRef = useRef<HTMLDivElement>(null);
@@ -367,7 +343,6 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     <div
       onMouseEnter={() => setHoveringBackground(true)}
       onMouseLeave={() => setHoveringBackground(false)}
-      onMouseMove={handleBackgroundMouseMove}
       className={`fixed inset-0 z-50 flex flex-col items-center bg-[#020612] space-grid overflow-hidden transition-all duration-1000 ${
         glitchActive ? "scale-105 opacity-0 brightness-150 filter saturate-200" : ""
       }`}
@@ -377,45 +352,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       <div className="absolute inset-x-0 h-1 bg-[#00f3ff]/10 blur-[1px] scanline-scanner pointer-events-none" />
 
       {/* Dynamic Starfield Background Layers */}
-      <div className="starfield pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="starfield-layer stars-1" />
-        <div className="starfield-layer stars-2" />
-        <div className="starfield-layer stars-3" />
-        <div className="shooting-star shooting-star-1 absolute" />
-        <div className="shooting-star shooting-star-2 absolute" />
-        <div className="shooting-star shooting-star-3 absolute" />
-        <div className="shooting-star shooting-star-4 absolute" />
-        <div className="shooting-star shooting-star-5 absolute" />
-        <div className="shooting-star shooting-star-6 absolute" />
-        <div className="shooting-star shooting-star-7 absolute" />
-        <div className="shooting-star shooting-star-8 absolute" />
-        
-        {/* Extra dynamic shooting star shower triggered by background hover */}
-        {hoveringBackground && (
-          <>
-            <div className="shooting-star shooting-star-9 absolute" />
-            <div className="shooting-star shooting-star-10 absolute" />
-            <div className="shooting-star shooting-star-11 absolute" />
-            <div className="shooting-star shooting-star-12 absolute" />
-            <div className="shooting-star shooting-star-13 absolute" />
-            <div className="shooting-star shooting-star-14 absolute" />
-            <div className="shooting-star shooting-star-15 absolute" />
-            <div className="shooting-star shooting-star-16 absolute" />
-          </>
-        )}
-
-        {/* Mouse-triggered custom shooting stars */}
-        {mouseStars.map((star) => (
-          <div
-            key={star.id}
-            className={`shooting-star mouse-shooting-star mouse-shooting-star-${star.color}`}
-            style={{
-              top: `${star.y}px`,
-              left: `${star.x}px`,
-            }}
-          />
-        ))}
-      </div>
+      <StarfieldCanvas hoveringBackground={hoveringBackground} />
 
       {/* Top Header Bar */}
       <header 
