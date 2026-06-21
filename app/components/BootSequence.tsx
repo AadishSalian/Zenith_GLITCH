@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSpaceTracker, Location } from "./SpaceTrackerContext";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Map as LeafletMap, Marker as LeafletMarker, LeafletMouseEvent } from "leaflet";
 import { 
   Check, 
   Navigation, 
@@ -70,17 +71,29 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchFeedback, setSearchFeedback] = useState<{ text: string; error: boolean } | null>(null);
 
+  // Track state in Refs to prevent re-initializing the Leaflet map on coordinates update
+  const activeLocationRef = useRef(activeLocation);
+  const setActiveLocationRef = useRef(setActiveLocation);
+
+  useEffect(() => {
+    activeLocationRef.current = activeLocation;
+  }, [activeLocation]);
+
+  useEffect(() => {
+    setActiveLocationRef.current = setActiveLocation;
+  }, [setActiveLocation]);
+
   // Leaflet refs
   const [leafletLoaded, setLeafletLoaded] = useState(false);
-  const LRef = useRef<any>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const LRef = useRef<typeof import("leaflet") | null>(null);
+  const mapInstanceRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<LeafletMarker | null>(null);
 
   // Load Leaflet dynamically
   useEffect(() => {
     if (typeof window !== "undefined") {
       import("leaflet").then((leaflet) => {
-        LRef.current = leaflet.default || leaflet;
+        LRef.current = (leaflet.default || leaflet) as typeof import("leaflet");
         setLeafletLoaded(true);
       });
     }
@@ -88,7 +101,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
 
   // Initialize Leaflet map
   useEffect(() => {
-    if (!leafletLoaded || !mapRef.current || mapInstanceRef.current) return;
+    if (!leafletLoaded || !mapRef.current || mapInstanceRef.current || !LRef.current) return;
     const L = LRef.current;
 
     const pulseIcon = L.divIcon({
@@ -102,7 +115,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     });
 
     const map = L.map(mapRef.current, {
-      center: [activeLocation.lat, activeLocation.lng],
+      center: [activeLocationRef.current.lat, activeLocationRef.current.lng],
       zoom: 2,
       zoomControl: true,
       minZoom: 1,
@@ -114,17 +127,17 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(map);
 
-    const marker = L.marker([activeLocation.lat, activeLocation.lng], { icon: pulseIcon }).addTo(map);
+    const marker = L.marker([activeLocationRef.current.lat, activeLocationRef.current.lng], { icon: pulseIcon }).addTo(map);
 
     mapInstanceRef.current = map;
     markerRef.current = marker;
 
-    map.on("click", (e: any) => {
+    map.on("click", (e: LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       const latFixed = parseFloat(lat.toFixed(4));
       const lngFixed = parseFloat(lng.toFixed(4));
 
-      setActiveLocation({
+      setActiveLocationRef.current({
         lat: latFixed,
         lng: lngFixed,
         label: "Custom Target Lock",
@@ -138,7 +151,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       });
     });
 
-    map.on("mousemove", (e: any) => {
+    map.on("mousemove", (e: LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       setMapHoverCoords({
         lat: parseFloat(lat.toFixed(2)),
@@ -160,7 +173,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   // Track coordinates sync and update map display
   useEffect(() => {
     if (mapInstanceRef.current && markerRef.current) {
-      const latlng = [activeLocation.lat, activeLocation.lng];
+      const latlng: [number, number] = [activeLocation.lat, activeLocation.lng];
       markerRef.current.setLatLng(latlng);
       mapInstanceRef.current.panTo(latlng);
     }
