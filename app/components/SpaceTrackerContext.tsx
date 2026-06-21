@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import { useSpaceTrackerStore } from "../store/spaceTrackerStore";
 
 export interface Location {
   lat: number;
@@ -234,13 +235,22 @@ function calculatePlanetAzimuthElevation(
 }
 
 export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeLocation, setActiveLocation] = useState<Location>(LocationPresets[0]);
-  const [selectedObjectId, setSelectedObjectId] = useState<string>("iss");
-  const [simulationSpeed, setSimulationSpeed] = useState<number>(1);
-  const [simulationTime, setSimulationTime] = useState<number>(() => Date.now());
-  const [crtEnabled, setCrtEnabled] = useState<boolean>(false);
-  const [hudGridEnabled, setHudGridEnabled] = useState<boolean>(true);
-  const [trackingActive, setTrackingActive] = useState<boolean>(true);
+  const {
+    activeLocation,
+    setActiveLocation,
+    selectedObjectId,
+    setSelectedObjectId,
+    simulationSpeed,
+    setSimulationSpeed,
+    simulationTime,
+    setSimulationTime,
+    crtEnabled,
+    setCrtEnabled,
+    hudGridEnabled,
+    setHudGridEnabled,
+    trackingActive,
+    setTrackingActive,
+  } = useSpaceTrackerStore();
 
   const lastTickRef = useRef<number>(0);
 
