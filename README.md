@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zenith Glitch
 
-## Getting Started
+**A futuristic, real-time geodetic coordinate tracking cockpit and cosmic telemetry dashboard.**
 
-First, run the development server:
+Zenith Glitch represents the next generation of space exploration interfaces. Designed to simulate a premium aerospace mission control center, it empowers users to explore and track celestial objects, satellites, and planetary bodies from a highly interactive, cinematic dashboard.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## My Enhancements & Implementations
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Interactive Geospatial Grid
+- **Module Integration:** Integrated and configured an interactive Leaflet.js mapping module for real-time tracking.
+- **Fluid Navigation:** Enabled highly responsive user panning across the global grid.
+- **Precision Targeting:** Implemented click-to-select targeting coordinates for pinpoint geographic accuracy.
+- **Zoom Tracking:** Integrated functional zoom tracking control events (`+` / `-`) for detailed geospatial analysis.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Dynamic Canvas Background Asset
+- **Rendering Engine:** Built a fully responsive, full-viewport HTML5 `<canvas>` rendering engine.
+- **Hardware Acceleration:** Handles high-performance, interactive particle effects without compromising the primary layout's frame rates.
+- **Event-Driven Visuals:** Dynamically spawns glowing shooting stars and trailing cosmic effects triggered directly by user mouse movements (`onMouseMove`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Typography, Style, & Contrast Optimization
+- **Readability:** Upgraded all visual interface components to maximize text legibility across complex data modules.
+- **Modern Typefaces:** Swapped legacy compressed font layers with clean, high-contrast modern sans-serif typefaces (Inter and Roboto).
+- **Responsive Scaling:** Refined and scaled layout font properties to maintain strict visual hierarchy and a premium aesthetic on all viewport sizes.
 
-## Learn More
+## Shared Infrastructure & Core Stack
 
-To learn more about Next.js, take a look at the following resources:
+The architecture relies on modern web technologies engineered for high performance, reliability, and maintainability.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Technology | Implementation Scope |
+| :--- | :--- |
+| **Next.js 14** | Core framework driving the React application, application routing, and rendering optimizations. |
+| **TypeScript** | Strict static typing ensuring reliability for all telemetry data streams and component states. |
+| **Tailwind CSS** | Utility-first framework powering the cyberpunk, high-contrast visual design system and UI components. |
+| **Zustand** | Centralized global state tracking architecture and reactive data bank management. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Architecture & Data Sources
 
-## Deploy on Vercel
+- **OpenNotify API (`/api/iss`):** Used as a real-time proxy data stream to fetch the exact, live coordinate path (latitude and longitude) of the International Space Station as it orbits Earth every couple of seconds.
+- **NASA JPL Horizons API (`/api/horizons`):** Used to retrieve highly precise celestial coordinates, tracking vectors, and position metrics for planets within our solar system.
+- **Leaflet & OpenStreetMap Tile API:** Used to pull down the dark, high-contrast geographical map tiles that form the underlying visual grid of our location targeting map dashboard.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Geospatial Data Verifications
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The underlying data pipeline is rigorously validated to ensure accurate cosmic and terrestrial tracking:
+
+- **Telemetry Sources:** Core coordinate telemetry is fetched reliably through public aerospace mapping coordinates and external orbital calculation frameworks.
+- **Pipeline Integrity:** Data points are continuously synchronized with the central Zustand data bank, verifying that all geodetic readouts, orbital passes, and celestial tracking paths remain accurate to real-world geospatial events.
