@@ -31,6 +31,32 @@ export default function Home() {
   const [booted, setBooted] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"dashboard" | "iss" | "planets" | "skymap" | "passes" | "settings">("dashboard");
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [hoveringBackground, setHoveringBackground] = useState<boolean>(false);
+
+  // Mouse-spawned shooting stars
+  const [mouseStars, setMouseStars] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
+  const starIdRef = useRef<number>(0);
+  const lastSpawnRef = useRef<number>(0);
+
+  const handleBackgroundMouseMove = (e: React.MouseEvent) => {
+    if (!hoveringBackground) return;
+    const now = Date.now();
+    if (now - lastSpawnRef.current > 150) {
+      lastSpawnRef.current = now;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const newId = starIdRef.current++;
+      const colors = ["cyan", "pink", "purple"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      setMouseStars((prev) => [...prev, { id: newId, x, y, color }]);
+      setTimeout(() => {
+        setMouseStars((prev) => prev.filter((s) => s.id !== newId));
+      }, 1200);
+    }
+  };
   const {
     activeLocation,
     selectedObjectId,
@@ -120,14 +146,63 @@ export default function Home() {
   }
 
   return (
-    <div className={`flex min-h-screen bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}>
+    <div 
+      onMouseEnter={() => setHoveringBackground(true)}
+      onMouseLeave={() => setHoveringBackground(false)}
+      onMouseMove={handleBackgroundMouseMove}
+      className={`flex min-h-screen bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
+    >
       
       {/* BACKGROUND SCI-FI GRID OVERLAY */}
       <div className="absolute inset-0 space-grid pointer-events-none z-0" />
       <div className="absolute inset-0 bg-gradient-to-tr from-[#020612] via-transparent to-[#020612]/30 pointer-events-none z-0" />
 
+      {/* Dynamic Starfield Background Layers */}
+      <div className="starfield pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="starfield-layer stars-1" />
+        <div className="starfield-layer stars-2" />
+        <div className="starfield-layer stars-3" />
+        <div className="shooting-star shooting-star-1 absolute" />
+        <div className="shooting-star shooting-star-2 absolute" />
+        <div className="shooting-star shooting-star-3 absolute" />
+        <div className="shooting-star shooting-star-4 absolute" />
+        <div className="shooting-star shooting-star-5 absolute" />
+        <div className="shooting-star shooting-star-6 absolute" />
+        <div className="shooting-star shooting-star-7 absolute" />
+        <div className="shooting-star shooting-star-8 absolute" />
+        
+        {/* Extra dynamic shooting star shower triggered by background hover */}
+        {hoveringBackground && (
+          <>
+            <div className="shooting-star shooting-star-9 absolute" />
+            <div className="shooting-star shooting-star-10 absolute" />
+            <div className="shooting-star shooting-star-11 absolute" />
+            <div className="shooting-star shooting-star-12 absolute" />
+            <div className="shooting-star shooting-star-13 absolute" />
+            <div className="shooting-star shooting-star-14 absolute" />
+            <div className="shooting-star shooting-star-15 absolute" />
+            <div className="shooting-star shooting-star-16 absolute" />
+          </>
+        )}
+
+        {/* Mouse-triggered custom shooting stars */}
+        {mouseStars.map((star) => (
+          <div
+            key={star.id}
+            className={`shooting-star mouse-shooting-star mouse-shooting-star-${star.color}`}
+            style={{
+              top: `${star.y}px`,
+              left: `${star.x}px`,
+            }}
+          />
+        ))}
+      </div>
+
       {/* LEFT NAVIGATION SIDEBAR */}
-      <aside className="w-56 border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex flex-col justify-between py-6 px-4 shrink-0 z-10 relative">
+      <aside 
+        onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
+        className="w-56 border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex flex-col justify-between py-6 px-4 shrink-0 z-10 relative"
+      >
         <div className="flex flex-col gap-8">
           
           {/* Logo Brand */}
@@ -239,7 +314,10 @@ export default function Home() {
       <div className="flex-1 flex flex-col min-w-0 z-10 relative">
         
         {/* Top Control Header */}
-        <header className="border-b border-[#101b33] bg-[#030816]/75 backdrop-blur-md py-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-30">
+        <header 
+          onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
+          className="border-b border-[#101b33] bg-[#030816]/75 backdrop-blur-md py-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-30"
+        >
           
           {/* Geodetic Lock readout */}
           <div className="flex items-center gap-3 font-mono text-xs tracking-widest text-slate-500">
@@ -324,6 +402,7 @@ export default function Home() {
             {/* TAB 1: DASHBOARD VIEW */}
             {activeTab === "dashboard" && (
               <motion.div 
+                onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
                 key="dashboard-view"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -431,6 +510,7 @@ export default function Home() {
             {/* TAB 2: ISS TRACKER VIEW */}
             {activeTab === "iss" && (
               <motion.div 
+                onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
                 key="iss-view"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -453,6 +533,7 @@ export default function Home() {
             {/* TAB 3: PLANETS VIEW */}
             {activeTab === "planets" && (
               <motion.div 
+                onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
                 key="planets-view"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -475,6 +556,7 @@ export default function Home() {
             {/* TAB 4: SKY MAP VIEW */}
             {activeTab === "skymap" && (
               <motion.div 
+                onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
                 key="skymap-view"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -525,6 +607,7 @@ export default function Home() {
             {/* TAB 5: UPCOMING PASSES VIEW */}
             {activeTab === "passes" && (
               <motion.div 
+                onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
                 key="passes-view"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -584,6 +667,7 @@ export default function Home() {
             {/* TAB 6: SETTINGS VIEW */}
             {activeTab === "settings" && (
               <motion.div 
+                onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
                 key="settings-view"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -659,9 +743,12 @@ export default function Home() {
             )}
           </AnimatePresence>
         </main>
-
+ 
         {/* Footer info bar details */}
-        <footer className="border-t border-[#101b33] bg-[#030816]/75 backdrop-blur-md py-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4 z-20">
+        <footer 
+          onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
+          className="border-t border-[#101b33] bg-[#030816]/75 backdrop-blur-md py-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4 z-20"
+        >
           <div className="flex items-center gap-2 font-mono text-[9px] text-slate-500">
             <Activity className="w-3.5 h-3.5 text-[#ff007f] animate-pulse" />
             <span>All positional data is based on real-time orbital calculations and astronomical models. Accuracy may vary ±0.5°.</span>
@@ -671,7 +758,7 @@ export default function Home() {
             <span>NASA • JPL • OpenNotify</span>
           </div>
         </footer>
-
+ 
       </div>
 
       {/* FLOATING TELEMETRY DRAWER */}

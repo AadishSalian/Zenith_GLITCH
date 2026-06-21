@@ -191,7 +191,7 @@ body {
 }
 
 .base-map-tiles {
-  filter: brightness(0.6) contrast(1.35) saturate(1.2) hue-rotate(195deg) !important;
+  filter: brightness(1.5) contrast(1.15) saturate(1.5) hue-rotate(195deg) !important;
   opacity: 0.95;
 }
 
@@ -319,8 +319,8 @@ body {
 
 .shooting-star {
   position: absolute;
-  width: 120px;
-  height: 1.2px;
+  width: 130px;
+  height: 2.2px;
   transform: rotate(45deg);
   transform-origin: left center;
   animation: shoot 10s linear infinite;
@@ -329,19 +329,21 @@ body {
   z-index: 0;
 }
 
-/* Varied positions, delays, speeds and neon cyberpunk gradients */
+/* Varied positions, delays, speeds and neon cyberpunk gradients with matching glows */
 .shooting-star-1 {
   top: 5%;
   left: 5%;
-  background: linear-gradient(90deg, rgba(0, 243, 255, 0.85), transparent);
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
   animation-duration: 7s;
   animation-delay: 0.2s;
 }
 
 .shooting-star-2 {
-  top: 15%;
+  top: 65%;
   left: 35%;
-  background: linear-gradient(90deg, rgba(255, 0, 127, 0.8), transparent);
+  background: linear-gradient(90deg, #ff007f, transparent);
+  filter: drop-shadow(0 0 6px #ff007f);
   animation-duration: 11s;
   animation-delay: 3.2s;
 }
@@ -349,15 +351,17 @@ body {
 .shooting-star-3 {
   top: 25%;
   left: -2%;
-  background: linear-gradient(90deg, rgba(0, 243, 255, 0.75), transparent);
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
   animation-duration: 9s;
   animation-delay: 5.8s;
 }
 
 .shooting-star-4 {
-  top: 40%;
+  top: 75%;
   left: 20%;
-  background: linear-gradient(90deg, rgba(167, 139, 250, 0.8), transparent);
+  background: linear-gradient(90deg, #a78bfa, transparent);
+  filter: drop-shadow(0 0 6px #a78bfa);
   animation-duration: 13s;
   animation-delay: 1.8s;
 }
@@ -365,15 +369,17 @@ body {
 .shooting-star-5 {
   top: 10%;
   left: 65%;
-  background: linear-gradient(90deg, rgba(0, 243, 255, 0.85), transparent);
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
   animation-duration: 8s;
   animation-delay: 4.1s;
 }
 
 .shooting-star-6 {
-  top: 48%;
+  top: 80%;
   left: 8%;
-  background: linear-gradient(90deg, rgba(255, 0, 127, 0.8), transparent);
+  background: linear-gradient(90deg, #ff007f, transparent);
+  filter: drop-shadow(0 0 6px #ff007f);
   animation-duration: 10s;
   animation-delay: 7.5s;
 }
@@ -381,17 +387,118 @@ body {
 .shooting-star-7 {
   top: 32%;
   left: 72%;
-  background: linear-gradient(90deg, rgba(167, 139, 250, 0.75), transparent);
+  background: linear-gradient(90deg, #a78bfa, transparent);
+  filter: drop-shadow(0 0 6px #a78bfa);
   animation-duration: 12s;
   animation-delay: 9.8s;
 }
 
 .shooting-star-8 {
-  top: 18%;
+  top: 70%;
   left: 48%;
-  background: linear-gradient(90deg, rgba(0, 243, 255, 0.8), transparent);
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
   animation-duration: 6.5s;
   animation-delay: 2.5s;
+}
+
+.shooting-star-9 {
+  top: 85%;
+  left: 20%;
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
+  animation-duration: 4s;
+  animation-delay: 0.1s;
+}
+
+.shooting-star-10 {
+  top: 22%;
+  left: 55%;
+  background: linear-gradient(90deg, #ff007f, transparent);
+  filter: drop-shadow(0 0 6px #ff007f);
+  animation-duration: 5.5s;
+  animation-delay: 0.8s;
+}
+
+.shooting-star-11 {
+  top: 90%;
+  left: 15%;
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
+  animation-duration: 3.5s;
+  animation-delay: 0.3s;
+}
+
+.shooting-star-12 {
+  top: 55%;
+  left: 40%;
+  background: linear-gradient(90deg, #a78bfa, transparent);
+  filter: drop-shadow(0 0 6px #a78bfa);
+  animation-duration: 6s;
+  animation-delay: 1.2s;
+}
+
+.shooting-star-13 {
+  top: 60%;
+  left: 80%;
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
+  animation-duration: 4.8s;
+  animation-delay: 0.5s;
+}
+
+.shooting-star-14 {
+  top: 78%;
+  left: 60%;
+  background: linear-gradient(90deg, #ff007f, transparent);
+  filter: drop-shadow(0 0 6px #ff007f);
+  animation-duration: 5s;
+  animation-delay: 0.2s;
+}
+
+.shooting-star-15 {
+  top: 28%;
+  left: 85%;
+  background: linear-gradient(90deg, #a78bfa, transparent);
+  filter: drop-shadow(0 0 6px #a78bfa);
+  animation-duration: 5.2s;
+  animation-delay: 1.5s;
+}
+
+.shooting-star-16 {
+  top: 68%;
+  left: 30%;
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 6px #00f3ff);
+  animation-duration: 3.8s;
+  animation-delay: 0.7s;
+}
+
+/* Mouse-triggered custom shooting stars with color overrides */
+.mouse-shooting-star {
+  position: absolute;
+  width: 140px;
+  height: 2.4px;
+  transform: rotate(45deg);
+  transform-origin: left center;
+  animation: shoot-mouse 1.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mouse-shooting-star-cyan {
+  background: linear-gradient(90deg, #00f3ff, transparent);
+  filter: drop-shadow(0 0 8px #00f3ff);
+}
+
+.mouse-shooting-star-pink {
+  background: linear-gradient(90deg, #ff007f, transparent);
+  filter: drop-shadow(0 0 8px #ff007f);
+}
+
+.mouse-shooting-star-purple {
+  background: linear-gradient(90deg, #a78bfa, transparent);
+  filter: drop-shadow(0 0 8px #a78bfa);
 }
 
 @keyframes star-drift-slow {
@@ -423,6 +530,20 @@ body {
   }
   100% {
     transform: rotate(45deg) translate3d(700px, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes shoot-mouse {
+  0% {
+    transform: rotate(45deg) translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(45deg) translate3d(400px, 0, 0);
     opacity: 0;
   }
 }

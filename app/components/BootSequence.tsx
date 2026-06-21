@@ -64,6 +64,32 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [glitchActive, setGlitchActive] = useState<boolean>(false);
   const [gpsLoading, setGpsLoading] = useState<boolean>(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [hoveringBackground, setHoveringBackground] = useState<boolean>(false);
+
+  // Mouse-spawned shooting stars
+  const [mouseStars, setMouseStars] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
+  const starIdRef = useRef<number>(0);
+  const lastSpawnRef = useRef<number>(0);
+
+  const handleBackgroundMouseMove = (e: React.MouseEvent) => {
+    if (!hoveringBackground) return;
+    const now = Date.now();
+    if (now - lastSpawnRef.current > 150) {
+      lastSpawnRef.current = now;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const newId = starIdRef.current++;
+      const colors = ["cyan", "pink", "purple"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      setMouseStars((prev) => [...prev, { id: newId, x, y, color }]);
+      setTimeout(() => {
+        setMouseStars((prev) => prev.filter((s) => s.id !== newId));
+      }, 1200);
+    }
+  };
 
   // Map state
   const mapRef = useRef<HTMLDivElement>(null);
@@ -339,6 +365,9 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
 
   return (
     <div
+      onMouseEnter={() => setHoveringBackground(true)}
+      onMouseLeave={() => setHoveringBackground(false)}
+      onMouseMove={handleBackgroundMouseMove}
       className={`fixed inset-0 z-50 flex flex-col items-center bg-[#020612] space-grid overflow-hidden transition-all duration-1000 ${
         glitchActive ? "scale-105 opacity-0 brightness-150 filter saturate-200" : ""
       }`}
@@ -360,10 +389,38 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
         <div className="shooting-star shooting-star-6 absolute" />
         <div className="shooting-star shooting-star-7 absolute" />
         <div className="shooting-star shooting-star-8 absolute" />
+        
+        {/* Extra dynamic shooting star shower triggered by background hover */}
+        {hoveringBackground && (
+          <>
+            <div className="shooting-star shooting-star-9 absolute" />
+            <div className="shooting-star shooting-star-10 absolute" />
+            <div className="shooting-star shooting-star-11 absolute" />
+            <div className="shooting-star shooting-star-12 absolute" />
+            <div className="shooting-star shooting-star-13 absolute" />
+            <div className="shooting-star shooting-star-14 absolute" />
+            <div className="shooting-star shooting-star-15 absolute" />
+            <div className="shooting-star shooting-star-16 absolute" />
+          </>
+        )}
+
+        {/* Mouse-triggered custom shooting stars */}
+        {mouseStars.map((star) => (
+          <div
+            key={star.id}
+            className={`shooting-star mouse-shooting-star mouse-shooting-star-${star.color}`}
+            style={{
+              top: `${star.y}px`,
+              left: `${star.x}px`,
+            }}
+          />
+        ))}
       </div>
 
       {/* Top Header Bar */}
-      <header className="w-full max-w-7xl px-8 pt-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-4 z-20 border-b border-[#101b33]/30 bg-gradient-to-b from-[#030816]/45 to-transparent backdrop-blur-sm shrink-0">
+      <header 
+        onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
+        className="w-full max-w-7xl px-8 pt-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-4 z-20 border-b border-[#101b33]/30 bg-gradient-to-b from-[#030816]/45 to-transparent backdrop-blur-sm shrink-0">
         {/* Left: System state */}
         <div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.15em] text-[#00f3ff]/70 md:w-1/3 justify-start">
           <Compass className="w-3.5 h-3.5 text-[#00f3ff] animate-pulse" />
@@ -392,6 +449,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
 
       {/* Main Container Overlay with Framer Motion */}
       <motion.div 
+        onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
@@ -613,7 +671,10 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       </motion.div>
       
       {/* Footer metadata details */}
-      <div className="absolute bottom-6 font-mono text-[9px] tracking-widest text-slate-700">
+      <div 
+        onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
+        className="absolute bottom-6 font-mono text-[9px] tracking-widest text-slate-700"
+      >
         GEODETIC CALIBRATION GRID LOCK // AZ/EL INTERCEPT ENGINE v4.8
       </div>
     </div>
