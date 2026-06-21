@@ -120,7 +120,8 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       zoomControl: true,
       minZoom: 1,
       maxZoom: 12,
-      attributionControl: true
+      attributionControl: true,
+      scrollWheelZoom: false
     });
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
@@ -346,8 +347,14 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
         <div className="stars-1 absolute inset-0" />
         <div className="stars-2 absolute inset-0" />
         <div className="stars-3 absolute inset-0" />
-        <div className="shooting-star absolute" />
+        <div className="shooting-star shooting-star-1 absolute" />
         <div className="shooting-star shooting-star-2 absolute" />
+        <div className="shooting-star shooting-star-3 absolute" />
+        <div className="shooting-star shooting-star-4 absolute" />
+        <div className="shooting-star shooting-star-5 absolute" />
+        <div className="shooting-star shooting-star-6 absolute" />
+        <div className="shooting-star shooting-star-7 absolute" />
+        <div className="shooting-star shooting-star-8 absolute" />
       </div>
 
       {/* Top Header Bar */}

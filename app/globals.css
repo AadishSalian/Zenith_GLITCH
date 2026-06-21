@@ -300,24 +300,79 @@ body {
 
 .shooting-star {
   position: absolute;
-  top: -10%;
-  left: -10%;
-  width: 150px;
-  height: 1.5px;
-  background: linear-gradient(90deg, rgba(0, 243, 255, 0.8), transparent);
+  width: 120px;
+  height: 1.2px;
   transform: rotate(45deg);
+  transform-origin: left center;
   animation: shoot 10s linear infinite;
   pointer-events: none;
   opacity: 0;
+  z-index: 0;
+}
+
+/* Varied positions, delays, speeds and neon cyberpunk gradients */
+.shooting-star-1 {
+  top: 5%;
+  left: 5%;
+  background: linear-gradient(90deg, rgba(0, 243, 255, 0.85), transparent);
+  animation-duration: 7s;
+  animation-delay: 0.2s;
 }
 
 .shooting-star-2 {
-  animation-delay: 4.5s;
   top: 15%;
-  left: -5%;
-  width: 120px;
-  animation-duration: 14s;
-  background: linear-gradient(90deg, rgba(255, 0, 127, 0.7), transparent);
+  left: 35%;
+  background: linear-gradient(90deg, rgba(255, 0, 127, 0.8), transparent);
+  animation-duration: 11s;
+  animation-delay: 3.2s;
+}
+
+.shooting-star-3 {
+  top: 25%;
+  left: -2%;
+  background: linear-gradient(90deg, rgba(0, 243, 255, 0.75), transparent);
+  animation-duration: 9s;
+  animation-delay: 5.8s;
+}
+
+.shooting-star-4 {
+  top: 40%;
+  left: 20%;
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.8), transparent);
+  animation-duration: 13s;
+  animation-delay: 1.8s;
+}
+
+.shooting-star-5 {
+  top: 10%;
+  left: 65%;
+  background: linear-gradient(90deg, rgba(0, 243, 255, 0.85), transparent);
+  animation-duration: 8s;
+  animation-delay: 4.1s;
+}
+
+.shooting-star-6 {
+  top: 48%;
+  left: 8%;
+  background: linear-gradient(90deg, rgba(255, 0, 127, 0.8), transparent);
+  animation-duration: 10s;
+  animation-delay: 7.5s;
+}
+
+.shooting-star-7 {
+  top: 32%;
+  left: 72%;
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.75), transparent);
+  animation-duration: 12s;
+  animation-delay: 9.8s;
+}
+
+.shooting-star-8 {
+  top: 18%;
+  left: 48%;
+  background: linear-gradient(90deg, rgba(0, 243, 255, 0.8), transparent);
+  animation-duration: 6.5s;
+  animation-delay: 2.5s;
 }
 
 @keyframes starfield-drift-slow {
@@ -337,18 +392,18 @@ body {
 
 @keyframes shoot {
   0% {
-    transform: translate(0, 0) rotate(45deg);
+    transform: rotate(45deg) translate(0, 0);
     opacity: 0;
   }
   1% {
-    opacity: 0.9;
+    opacity: 1;
   }
   6% {
-    transform: translate(800px, 800px) rotate(45deg);
+    transform: rotate(45deg) translate(700px, 0);
     opacity: 0;
   }
   100% {
-    transform: translate(800px, 800px) rotate(45deg);
+    transform: rotate(45deg) translate(700px, 0);
     opacity: 0;
   }
 }
