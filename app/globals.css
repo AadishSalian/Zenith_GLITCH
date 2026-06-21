@@ -1,26 +1,166 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #020206;
+  --foreground: #ededed;
+  --color-cyan-glow: #00f3ff;
+  --color-purple-glow: #7c3aed;
+  --color-pink-glow: #ff007f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui;
+  --font-mono: var(--font-orbitron), ui-monospace, SFMono-Regular;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  font-family: var(--font-space-grotesk), sans-serif;
 }
+
+/* CRT Screen Effect Overlay */
+.crt-screen {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-screen::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+  background-size: 100% 4px;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.crt-screen::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: radial-gradient(circle, rgba(16, 24, 48, 0) 60%, rgba(2, 2, 6, 0.7) 100%);
+  z-index: 49;
+  pointer-events: none;
+}
+
+/* Sci-fi Space Command Deck Grid Background */
+.space-grid {
+  background-image: 
+    linear-gradient(to right, rgba(124, 58, 237, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  position: relative;
+}
+
+.space-grid::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 20%, rgba(2, 2, 6, 0.8) 80%);
+  pointer-events: none;
+}
+
+/* Glowing Telemetry Borders */
+.glow-border-cyan {
+  border: 1px solid rgba(0, 243, 255, 0.15);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.03), inset 0 0 15px rgba(0, 243, 255, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-border-cyan:hover {
+  border-color: rgba(0, 243, 255, 0.4);
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.08), inset 0 0 20px rgba(0, 243, 255, 0.05);
+}
+
+.glow-border-purple {
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.05), inset 0 0 15px rgba(124, 58, 237, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-border-purple:hover {
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 0 25px rgba(124, 58, 237, 0.12), inset 0 0 20px rgba(124, 58, 237, 0.06);
+}
+
+.glow-border-pink {
+  border: 1px solid rgba(255, 0, 127, 0.15);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.03), inset 0 0 15px rgba(255, 0, 127, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-border-pink:hover {
+  border-color: rgba(255, 0, 127, 0.4);
+  box-shadow: 0 0 25px rgba(255, 0, 127, 0.08), inset 0 0 20px rgba(255, 0, 127, 0.05);
+}
+
+/* Glassmorphic Panel Blur */
+.glass-panel {
+  background: rgba(8, 8, 16, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Animations */
+@keyframes scanline-anim {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scanline-scanner {
+  animation: scanline-anim 6s linear infinite;
+  background: linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.1) 10%, rgba(0, 243, 255, 0.25) 50%, rgba(0, 243, 255, 0.1) 90%, transparent);
+}
+
+@keyframes signal-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+.pulse-signal {
+  animation: signal-pulse 2s infinite ease-in-out;
+}
+
+@keyframes glitch-flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 0.99;
+    filter: hue-rotate(0deg) saturate(1);
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.4;
+    filter: hue-rotate(90deg) saturate(1.5);
+  }
+}
+.glitch-flicker-active {
+  animation: glitch-flicker 15s infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(2, 2, 6, 0.9);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 243, 255, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 243, 255, 0.5);
+}
+
