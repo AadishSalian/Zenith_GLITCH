@@ -123,8 +123,13 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       attributionControl: true
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      className: "base-map-tiles"
+    }).addTo(map);
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
+      className: "label-tiles"
     }).addTo(map);
 
     const marker = L.marker([activeLocationRef.current.lat, activeLocationRef.current.lng], { icon: pulseIcon }).addTo(map);
@@ -176,8 +181,24 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       const latlng: [number, number] = [activeLocation.lat, activeLocation.lng];
       markerRef.current.setLatLng(latlng);
       mapInstanceRef.current.panTo(latlng);
+      
+      const popupContent = `
+        <div class="font-mono text-[9px] leading-relaxed p-0.5">
+          <div class="text-[#ff007f] font-black tracking-wider border-b border-[#ff007f]/20 pb-0.5 mb-1 uppercase">
+            🛰️ TARGET LOCK: ${activeLocation.label.toUpperCase()}
+          </div>
+          <div class="text-white">LAT: <span class="text-[#00f3ff] font-bold">${activeLocation.lat.toFixed(4)}°</span></div>
+          <div class="text-white">LNG: <span class="text-[#00f3ff] font-bold">${activeLocation.lng.toFixed(4)}°</span></div>
+        </div>
+      `;
+      
+      markerRef.current.bindPopup(popupContent, { 
+        closeButton: false,
+        autoClose: false,
+        closeOnClick: false
+      }).openPopup();
     }
-  }, [activeLocation.lat, activeLocation.lng]);
+  }, [activeLocation.lat, activeLocation.lng, activeLocation.label]);
 
   // Start Calibration
   const handleStartCalibration = () => {

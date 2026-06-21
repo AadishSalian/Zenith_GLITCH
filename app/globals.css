@@ -181,9 +181,15 @@ body {
   outline: none !important;
 }
 
-.leaflet-tile {
-  filter: brightness(0.7) contrast(1.35) saturate(1.1) hue-rotate(195deg) !important;
+.base-map-tiles {
+  filter: brightness(0.6) contrast(1.35) saturate(1.2) hue-rotate(195deg) !important;
   opacity: 0.95;
+}
+
+.label-tiles {
+  filter: brightness(1.8) contrast(1.3) saturate(0) !important;
+  opacity: 0.95;
+  mix-blend-mode: screen;
 }
 
 .leaflet-control-zoom {
