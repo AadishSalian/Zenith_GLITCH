@@ -67,23 +67,22 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between border-b border-[#101b33] pb-4">
-          <div className="flex items-center gap-2 font-sans">
-            <Target className="w-5 h-5 text-[#00f3ff] animate-pulse" />
-            <div>
-              <h2 className="text-white font-bold text-sm leading-none uppercase">
-                Target Telemetry Lock
-              </h2>
-              <span className="text-slate-500 text-[9px] font-mono tracking-widest mt-1 block">
-                ID: {activeObj.id.toUpperCase()} ‖ CLASS: {activeObj.type.toUpperCase()}
-              </span>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-[#00f3ff] font-bold text-lg tracking-wide uppercase flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#00f3ff] rounded-full animate-pulse" />
+              Detail Drawer — {activeObj.id.toUpperCase()}
+            </h2>
+            <div className="text-[10px] text-slate-500 font-mono tracking-widest flex items-center gap-2">
+              <span>{activeObj.type.toUpperCase()} CLASS</span>
+              <span>•</span>
+              <span className="text-emerald-400">DATA STREAM ACTIVE</span>
             </div>
           </div>
-          
           <button
             onClick={onClose}
-            className="p-2 rounded-lg border border-slate-800 hover:border-rose-500 hover:bg-rose-500/10 text-[#ededed]/60 hover:text-rose-500 transition-all cursor-pointer outline-none"
+            className="p-2 hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-[#101b33]"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5 text-slate-400" />
           </button>
         </div>
 
@@ -106,6 +105,39 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
               </p>
             )}
           </div>
+
+          {/* Pass Alert Button */}
+          {activeObj.id === "iss" && (
+             <div className="flex gap-3 mt-2">
+              <button 
+                onClick={() => {
+                  if ("Notification" in window) {
+                    Notification.requestPermission().then(p => {
+                      if (p === "granted") {
+                        new Notification("Pass Alert Set", { body: "You will be notified when ISS is above 10 deg." });
+                      } else {
+                        alert("Please enable notifications to receive pass alerts.");
+                      }
+                    });
+                  } else {
+                    alert("Your browser does not support Web Push notifications.");
+                  }
+                }}
+                className="flex-1 bg-slate-900/50 hover:bg-emerald-900/30 border border-[#101b33] hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 transition-all rounded-lg p-3 text-xs font-bold tracking-widest uppercase text-center cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0)] hover:shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+              >
+                Set Pass Alert (Web Push)
+              </button>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("Link copied to clipboard!");
+                }}
+                className="flex-1 bg-slate-900/50 hover:bg-blue-900/30 border border-[#101b33] hover:border-blue-500/50 text-slate-300 hover:text-blue-400 transition-all rounded-lg p-3 text-xs font-bold tracking-widest uppercase text-center cursor-pointer"
+              >
+                Share View (Copy Link)
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Drawer Footer */}
