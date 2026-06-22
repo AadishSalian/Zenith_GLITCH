@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import * as satellite from "satellite.js";
 import { useSpaceTrackerStore } from "../store/spaceTrackerStore";
 
 export interface Location {
@@ -47,6 +48,8 @@ interface SpaceTrackerContextType {
   setHudGridEnabled: (val: boolean) => void;
   trackingActive: boolean;
   setTrackingActive: (val: boolean) => void;
+  activeFilter: "all" | "satellite" | "planet" | "iss";
+  setActiveFilter: (filter: "all" | "satellite" | "planet" | "iss") => void;
   locationPresets: Location[];
   trackedObjects: TrackedObject[];
   positions: Record<string, ObjectPosition>;
@@ -250,9 +253,57 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setHudGridEnabled,
     trackingActive,
     setTrackingActive,
+    activeFilter,
+    setActiveFilter,
   } = useSpaceTrackerStore();
 
   const lastTickRef = useRef<number>(0);
+  const [tleMap, setTleMap] = useState<Record<string, satellite.SatRec>>({});
+  const [dynamicTrackedObjects, setDynamicTrackedObjects] = useState<TrackedObject[]>(TrackedObjects);
+
+  // Fetch active satellites from API
+  useEffect(() => {
+    async function fetchSatellites() {
+      try {
+        const res = await fetch("/api/satellites");
+        const text = await res.text();
+        const lines = text.split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
+        
+        const newTleMap: Record<string, satellite.SatRec> = {};
+        const newObjects: TrackedObject[] = [...TrackedObjects];
+        
+        let count = 0;
+        for (let i = 0; i < lines.length && count < 100; i += 3) {
+          if (i + 2 < lines.length) {
+            const name = lines[i];
+            const tle1 = lines[i+1];
+            const tle2 = lines[i+2];
+            
+            try {
+              const satrec = satellite.twoline2satrec(tle1, tle2);
+              const id = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+              
+              if (id === "iss" || id.includes("zarya") || newObjects.find(o => o.id === id)) continue;
+              
+              newTleMap[id] = satrec;
+              newObjects.push({
+                id,
+                name,
+                type: "satellite",
+                description: `Active satellite orbiting Earth. SGP4 propagated.`,
+              });
+              count++;
+            } catch(e) {}
+          }
+        }
+        setTleMap(newTleMap);
+        setDynamicTrackedObjects(newObjects);
+      } catch (err) {
+        console.error("Failed to load satellites:", err);
+      }
+    }
+    fetchSatellites();
+  }, []);
 
   // Clock tick effect supporting time warp speed
   useEffect(() => {
@@ -271,35 +322,61 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => clearInterval(interval);
   }, [simulationSpeed, trackingActive, setSimulationTime]);
 
-  // Derive real-time positions whenever time or location changes
   const positions = React.useMemo(() => {
     const nextPositions: Record<string, ObjectPosition> = {};
 
-    TrackedObjects.forEach((obj) => {
+    dynamicTrackedObjects.forEach((obj) => {
       if (obj.type === "satellite") {
-        // Simulating ground track position
-        // Orbit cycle time calculation
-        const periodMs = (obj.id === "iss" ? 92.8 : 95.4) * 60 * 1000;
-        const progress = (simulationTime % periodMs) / periodMs;
-        const angle = progress * Math.PI * 2;
-
-        const maxInclination = obj.id === "iss" ? 51.64 : 28.47;
-        const lat = Math.sin(angle) * maxInclination;
-
-        // Longitude drifts as Earth rotates under the satellite
-        // 360 degrees per period + earth rotation drift
-        const earthDrift = (simulationTime / (24 * 60 * 60 * 1000)) * 360;
-        let lng = (progress * 360 - earthDrift) % 360;
-        if (lng > 180) lng -= 360;
-        if (lng < -180) lng += 360;
-
-        nextPositions[obj.id] = calculateAzimuthElevation(
-          activeLocation.lat,
-          activeLocation.lng,
-          lat,
-          lng,
-          obj.altitude || 400
-        );
+        if (tleMap[obj.id]) {
+          // Use SGP4
+          const satrec = tleMap[obj.id];
+          const date = new Date(simulationTime);
+          const positionAndVelocity = satellite.propagate(satrec, date);
+          
+          if (positionAndVelocity.position && typeof positionAndVelocity.position !== "boolean") {
+            const gmst = satellite.gstime(date);
+            const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+            
+            const observerGd = {
+              longitude: activeLocation.lng * Math.PI / 180,
+              latitude: activeLocation.lat * Math.PI / 180,
+              height: 0,
+            };
+            
+            const positionEcf = satellite.eciToEcf(positionAndVelocity.position, gmst);
+            const lookAngles = satellite.ecfToLookAngles(observerGd, positionEcf);
+            
+            const elevation = lookAngles.elevation * 180 / Math.PI;
+            const azimuth = lookAngles.azimuth * 180 / Math.PI;
+            const range = lookAngles.range; // km
+            
+            nextPositions[obj.id] = {
+              azimuth,
+              elevation,
+              range,
+              isAboveHorizon: elevation > 0,
+            };
+          }
+        } else {
+          // Fallback mock (for ISS/HST without TLE or while loading)
+          const periodMs = (obj.id === "iss" ? 92.8 : 95.4) * 60 * 1000;
+          const progress = (simulationTime % periodMs) / periodMs;
+          const angle = progress * Math.PI * 2;
+          const maxInclination = obj.id === "iss" ? 51.64 : 28.47;
+          const lat = Math.sin(angle) * maxInclination;
+          const earthDrift = (simulationTime / (24 * 60 * 60 * 1000)) * 360;
+          let lng = (progress * 360 - earthDrift) % 360;
+          if (lng > 180) lng -= 360;
+          if (lng < -180) lng += 360;
+  
+          nextPositions[obj.id] = calculateAzimuthElevation(
+            activeLocation.lat,
+            activeLocation.lng,
+            lat,
+            lng,
+            obj.altitude || 400
+          );
+        }
       } else {
         // Planet
         nextPositions[obj.id] = calculatePlanetAzimuthElevation(
@@ -313,7 +390,7 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
 
     return nextPositions;
-  }, [simulationTime, activeLocation]);
+  }, [simulationTime, activeLocation, dynamicTrackedObjects, tleMap]);
 
   // Derive upcoming passes for ISS based on active coordinates
   const issPasses = React.useMemo(() => {
@@ -358,9 +435,11 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
         trackingActive,
         setTrackingActive,
         locationPresets: LocationPresets,
-        trackedObjects: TrackedObjects,
+        trackedObjects: dynamicTrackedObjects,
         positions,
         issPasses,
+        activeFilter,
+        setActiveFilter,
       }}
     >
       {children}

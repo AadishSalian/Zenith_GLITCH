@@ -6,6 +6,8 @@ import { BootSequence } from "./components/BootSequence";
 import { StarfieldCanvas } from "./components/StarfieldCanvas";
 import { LocationPicker } from "./components/LocationPicker";
 import { SkyChart } from "./components/SkyChart";
+import { SkyRadar } from "./components/SkyRadar";
+import { FilterBar } from "./components/FilterBar";
 import { TelemetryDrawer } from "./components/TelemetryDrawer";
 import { ISSTracker } from "./components/ISSTracker";
 import { PlanetTracker } from "./components/PlanetTracker";
@@ -355,9 +357,10 @@ export default function Home() {
                 {/* Column 2 & 3: 3D Dome and Bottom parameters (col-span-7) */}
                 <section className="xl:col-span-7 flex flex-col gap-6 justify-between">
                   
-                  {/* Top: 3D Celestial dome */}
-                  <div className="flex-grow min-h-[300px]">
-                    <SkyChart />
+                  {/* Top: Filter & Sky Radar */}
+                  <div className="flex flex-col gap-4 flex-grow min-h-[300px]">
+                    <FilterBar />
+                    <SkyRadar />
                   </div>
 
                   {/* Bottom cards: System Health & Tracking Summary */}
