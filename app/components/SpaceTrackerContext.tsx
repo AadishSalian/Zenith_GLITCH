@@ -258,22 +258,12 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
   } = useSpaceTrackerStore();
 
   const lastTickRef = useRef<number>(0);
-  const workerRef = useRef<Worker | null>(null);
+  // Initialize satrec map for SGP4
+  const satrecMapRef = useRef<Record<string, satellite.SatRec>>({});
   const [tleMap, setTleMap] = useState<Record<string, boolean>>({});
   const [dynamicTrackedObjects, setDynamicTrackedObjects] = useState<TrackedObject[]>(TrackedObjects);
   const [liveIss, setLiveIss] = useState<{latitude: number, longitude: number} | null>(null);
-  const [workerPositions, setWorkerPositions] = useState<Record<string, ObjectPosition>>({});
-
-  // Initialize Web Worker
-  useEffect(() => {
-    workerRef.current = new Worker(new URL("../workers/sgp4Worker.ts", import.meta.url));
-    workerRef.current.onmessage = (e) => {
-      if (e.data.type === "POSITIONS_UPDATED") {
-        setWorkerPositions(e.data.positions);
-      }
-    };
-    return () => workerRef.current?.terminate();
-  }, []);
+  const [positions, setPositions] = useState<Record<string, ObjectPosition>>({});
 
   // Fetch ISS Live Data
   useEffect(() => {
@@ -302,18 +292,29 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const text = await res.text();
         const lines = text.split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
         
-        // Send TLEs to worker
-        workerRef.current?.postMessage({
-          type: "UPDATE_TLES",
-          data: { tleLines: lines }
-        });
+        // Parse TLEs into satrecs
+        let parseCount = 0;
+        for (let i = 0; i < lines.length; i += 3) {
+          if (i + 2 < lines.length) {
+            const name = lines[i];
+            const tle1 = lines[i+1];
+            const tle2 = lines[i+2];
+            try {
+              const satrec = satellite.twoline2satrec(tle1, tle2);
+              const id = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+              if (!satrecMapRef.current[id]) {
+                satrecMapRef.current[id] = satrec;
+              }
+              parseCount++;
+            } catch(err) {}
+          }
+        }
 
         const newTleMap: Record<string, boolean> = {};
         const newObjects: TrackedObject[] = [...TrackedObjects];
         
-        // Just extract basic info for React state, math is in worker
         let count = 0;
-        for (let i = 0; i < lines.length && count < 1000; i += 3) { // Bumped count to 1000 for worker
+        for (let i = 0; i < lines.length && count < 1000; i += 3) {
           if (i + 2 < lines.length) {
             const name = lines[i];
             const id = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
@@ -339,7 +340,7 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fetchSatellites();
   }, []);
 
-  // Clock tick effect supporting time warp speed
+  // Compute positions
   useEffect(() => {
     lastTickRef.current = Date.now();
     
@@ -350,28 +351,86 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const delta = now - lastTickRef.current;
       lastTickRef.current = now;
 
-      setSimulationTime((prev) => prev + delta * simulationSpeed);
+      const nextSimulationTime = simulationTime + delta * simulationSpeed;
+      setSimulationTime(nextSimulationTime);
+
+      // Perform position computations inline instead of worker
+      const nextPositions: Record<string, ObjectPosition> = {};
+      const date = new Date(nextSimulationTime);
+
+      dynamicTrackedObjects.forEach((obj) => {
+        if (obj.id === "iss" && liveIss) {
+          nextPositions[obj.id] = calculateAzimuthElevation(
+            activeLocation.lat,
+            activeLocation.lng,
+            liveIss.latitude,
+            liveIss.longitude,
+            408
+          );
+        } else if (obj.type === "satellite") {
+          const satrec = satrecMapRef.current[obj.id];
+          if (satrec) {
+            const positionAndVelocity = satellite.propagate(satrec, date);
+            
+            if (positionAndVelocity && positionAndVelocity.position && typeof positionAndVelocity.position !== "boolean") {
+              const gmst = satellite.gstime(date);
+              const observerGd = {
+                longitude: activeLocation.lng * Math.PI / 180,
+                latitude: activeLocation.lat * Math.PI / 180,
+                height: 0,
+              };
+              
+              const positionEcf = satellite.eciToEcf(positionAndVelocity.position, gmst);
+              const lookAngles = satellite.ecfToLookAngles(observerGd, positionEcf);
+              
+              const elevation = lookAngles.elevation * 180 / Math.PI;
+              const azimuth = lookAngles.azimuth * 180 / Math.PI;
+              const range = lookAngles.rangeSat;
+              
+              nextPositions[obj.id] = {
+                azimuth,
+                elevation,
+                range,
+                isAboveHorizon: elevation > 0,
+              };
+            }
+          } else {
+            // Fallback mock
+            const periodMs = (obj.id === "iss" ? 92.8 : 95.4) * 60 * 1000;
+            const progress = (nextSimulationTime % periodMs) / periodMs;
+            const angle = progress * Math.PI * 2;
+            const maxInclination = obj.id === "iss" ? 51.64 : 28.47;
+            const lat = Math.sin(angle) * maxInclination;
+            const earthDrift = (nextSimulationTime / (24 * 60 * 60 * 1000)) * 360;
+            let lng = (progress * 360 - earthDrift) % 360;
+            if (lng > 180) lng -= 360;
+            if (lng < -180) lng += 360;
+    
+            nextPositions[obj.id] = calculateAzimuthElevation(
+              activeLocation.lat,
+              activeLocation.lng,
+              lat,
+              lng,
+              obj.altitude || 400
+            );
+          }
+        } else {
+          // Planet
+          nextPositions[obj.id] = calculatePlanetAzimuthElevation(
+            activeLocation.lat,
+            activeLocation.lng,
+            obj.ra || 0,
+            obj.dec || 0,
+            nextSimulationTime
+          );
+        }
+      });
+
+      setPositions(nextPositions);
     }, 100);
 
     return () => clearInterval(interval);
-  }, [simulationSpeed, trackingActive, setSimulationTime]);
-
-  // Send frame to Worker
-  useEffect(() => {
-    if (workerRef.current) {
-      workerRef.current.postMessage({
-        type: "COMPUTE_POSITIONS",
-        data: {
-          simulationTime,
-          activeLocation,
-          dynamicTrackedObjects,
-          liveIss
-        }
-      });
-    }
-  }, [simulationTime, activeLocation, dynamicTrackedObjects, liveIss]);
-
-  const positions = workerPositions;
+  }, [simulationSpeed, trackingActive, simulationTime, activeLocation, dynamicTrackedObjects, liveIss, setSimulationTime]);
 
   // Derive upcoming passes for ISS based on active coordinates
   const issPasses = React.useMemo(() => {
