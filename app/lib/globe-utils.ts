@@ -1,11 +1,11 @@
-import * as THREE from 'three';
+import { Vector3 } from "three";
 
 // Convert lat/lon degrees to 3D unit sphere position
-export function latLonToVector3(lat: number, lon: number, radius = 1): THREE.Vector3 {
+export function latLonToVector3(lat: number, lon: number, radius = 1): Vector3 {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lon + 180) * (Math.PI / 180);
 
-  return new THREE.Vector3(
+  return new Vector3(
     radius * Math.sin(phi) * Math.cos(theta),
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta)
@@ -13,7 +13,7 @@ export function latLonToVector3(lat: number, lon: number, radius = 1): THREE.Vec
 }
 
 // Convert a 3D point on unit sphere back to lat/lon
-export function vector3ToLatLon(v: THREE.Vector3): { lat: number; lon: number } {
+export function vector3ToLatLon(v: Vector3): { lat: number; lon: number } {
   const normalized = v.clone().normalize();
   const lat = Math.asin(normalized.y) * (180 / Math.PI);
   const lon = Math.atan2(normalized.x, normalized.z) * (180 / Math.PI);
@@ -33,3 +33,4 @@ export function azimuthToCardinal(az: number): string {
   const index = Math.round(((az %= 360) < 0 ? az + 360 : az) / 45) % 8;
   return dirs[index];
 }
+

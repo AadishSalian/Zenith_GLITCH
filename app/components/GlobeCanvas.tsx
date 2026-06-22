@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import { ACESFilmicToneMapping, AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Clock, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, ShaderMaterial, SphereGeometry, Vector2, Vector3, WebGLRenderer } from "three";
 import gsap from "gsap";
 import { formatCoords } from "../lib/globe-utils";
 
@@ -12,13 +12,13 @@ interface GlobeCanvasProps {
 
 export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, className = "" }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const globeRef = useRef<THREE.Mesh | null>(null);
-  const atmosphereRef = useRef<THREE.Mesh | null>(null);
-  const markerRef = useRef<THREE.Mesh | null>(null);
-  const clockRef = useRef<THREE.Clock>(new THREE.Clock());
+  const rendererRef = useRef<WebGLRenderer | null>(null);
+  const sceneRef = useRef<Scene | null>(null);
+  const cameraRef = useRef<PerspectiveCamera | null>(null);
+  const globeRef = useRef<Mesh | null>(null);
+  const atmosphereRef = useRef<Mesh | null>(null);
+  const markerRef = useRef<Mesh | null>(null);
+  const clockRef = useRef<Clock>(new Clock());
   
   const isDraggingRef = useRef(false);
   const previousMouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -39,29 +39,29 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
     const height = mountRef.current.clientHeight;
 
     // --- Renderer ---
-    const renderer = new THREE.WebGLRenderer({
+    const renderer = new WebGLRenderer({
       antialias: true,
       alpha: true,
       powerPreference: "high-performance"
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMapping = ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     // --- Scene & Camera ---
-    const scene = new THREE.Scene();
+    const scene = new Scene();
     scene.background = null;
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    const camera = new PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 0, 2.8);
     cameraRef.current = camera;
 
     // --- Globe ---
-    const globeGeometry = new THREE.SphereGeometry(1, 64, 64);
+    const globeGeometry = new SphereGeometry(1, 64, 64);
     
     const vertexShader = `
       varying vec2 vUv;
@@ -128,21 +128,21 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
       }
     `;
 
-    const globeMaterial = new THREE.ShaderMaterial({
+    const globeMaterial = new ShaderMaterial({
       vertexShader,
       fragmentShader,
       uniforms: {
         uTime: { value: 0 },
-        uLightDir: { value: new THREE.Vector3(5, 3, 5).normalize() }
+        uLightDir: { value: new Vector3(5, 3, 5).normalize() }
       }
     });
 
-    const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+    const globe = new Mesh(globeGeometry, globeMaterial);
     scene.add(globe);
     globeRef.current = globe;
 
     // --- Atmosphere ---
-    const atmosphereGeometry = new THREE.SphereGeometry(1.15, 64, 64);
+    const atmosphereGeometry = new SphereGeometry(1.15, 64, 64);
     const atmosphereFragmentShader = `
       varying vec3 vNormal;
 
@@ -152,7 +152,7 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
         gl_FragColor = vec4(atmosphereColor, intensity * 0.7);
       }
     `;
-    const atmosphereMaterial = new THREE.ShaderMaterial({
+    const atmosphereMaterial = new ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
         void main() {
@@ -161,18 +161,18 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
         }
       `,
       fragmentShader: atmosphereFragmentShader,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
+      side: BackSide,
+      blending: AdditiveBlending,
       transparent: true,
       depthWrite: false
     });
     
-    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    const atmosphere = new Mesh(atmosphereGeometry, atmosphereMaterial);
     scene.add(atmosphere);
     atmosphereRef.current = atmosphere;
 
     // --- Stars ---
-    const starsGeometry = new THREE.BufferGeometry();
+    const starsGeometry = new BufferGeometry();
     const starPositions = new Float32Array(2000 * 3);
     for (let i = 0; i < 2000; i++) {
       const theta = Math.random() * Math.PI * 2;
@@ -182,15 +182,15 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
       starPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
       starPositions[i*3+2] = r * Math.cos(phi);
     }
-    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starsMaterial = new THREE.PointsMaterial({
+    starsGeometry.setAttribute('position', new BufferAttribute(starPositions, 3));
+    const starsMaterial = new PointsMaterial({
       color: 0xffffff,
       size: 0.12,
       sizeAttenuation: true,
       transparent: true,
       opacity: 0.8
     });
-    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    const stars = new Points(starsGeometry, starsMaterial);
     scene.add(stars);
 
     // --- Entry Animation ---
@@ -216,9 +216,9 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
       const phi = (90 - lat) * (Math.PI / 180);
       const theta = (lon + 180) * (Math.PI / 180);
 
-      const markerGeom = new THREE.SphereGeometry(0.022, 16, 16);
-      const markerMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
-      const marker = new THREE.Mesh(markerGeom, markerMat);
+      const markerGeom = new SphereGeometry(0.022, 16, 16);
+      const markerMat = new MeshBasicMaterial({ color: 0x00ffcc });
+      const marker = new Mesh(markerGeom, markerMat);
 
       marker.position.set(
         Math.sin(phi) * Math.cos(theta),
@@ -226,14 +226,14 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
         Math.sin(phi) * Math.sin(theta)
       );
 
-      const ringGeom = new THREE.SphereGeometry(0.035, 16, 16);
-      const ringMat = new THREE.MeshBasicMaterial({
+      const ringGeom = new SphereGeometry(0.035, 16, 16);
+      const ringMat = new MeshBasicMaterial({
         color: 0x00ffcc,
         wireframe: true,
         transparent: true,
         opacity: 0.4
       });
-      const ring = new THREE.Mesh(ringGeom, ringMat);
+      const ring = new Mesh(ringGeom, ringMat);
       ring.position.copy(marker.position);
 
       globe.add(marker);
@@ -296,8 +296,8 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+      const raycaster = new Raycaster();
+      raycaster.setFromCamera(new Vector2(x, y), camera);
       const hits = raycaster.intersectObject(globe);
 
       if (hits.length > 0) {
@@ -342,8 +342,8 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
         const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+        const raycaster = new Raycaster();
+        raycaster.setFromCamera(new Vector2(x, y), camera);
         const hits = raycaster.intersectObject(globe);
 
         if (hits.length > 0) {
@@ -463,3 +463,4 @@ export const GlobeCanvas: React.FC<GlobeCanvasProps> = ({ onLocationSelect, clas
 };
 
 export default GlobeCanvas;
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import * as d3 from "d3";
+import { arc, easeElasticOut, select } from "d3";
 import gsap from "gsap";
 import { RadarObject, polarToCartesian } from "../lib/radar-utils";
 import { useSpaceTracker } from "./SpaceTrackerContext";
@@ -41,7 +41,7 @@ export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
     let alive = true;
     if (!svgRef.current) return;
 
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove(); // Re-render clean
 
     const R = 220;
@@ -87,7 +87,7 @@ export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
 
     // Layer 3: Radar Sweep Arc Reveal
     const arcGroup = g.append("g").attr("class", "layer-sweep");
-    const arcGen = d3.arc()
+    const arcGen = arc()
       .innerRadius(0)
       .outerRadius(R)
       .startAngle(0);
@@ -168,7 +168,7 @@ export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
     const dotsMerge = dotsEnter.merge(dots as any);
 
     // Update positions with a nice bounce transition
-    dotsMerge.transition().duration(1000).ease(d3.easeElasticOut)
+    dotsMerge.transition().duration(1000).ease(easeElasticOut)
       .attr("transform", (d: RadarObject) => {
         const p = polarToCartesian(d.azimuth, d.elevation, R);
         return `translate(${p.x},${p.y})`;
@@ -250,3 +250,4 @@ export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
 };
 
 export default SkyRadar;
+

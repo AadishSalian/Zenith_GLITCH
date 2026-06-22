@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import * as satellite from "satellite.js";
+import { twoline2satrec, propagate, gstime, eciToEcf, ecfToLookAngles, SatRec } from "satellite.js";
 import { useSpaceTrackerStore } from "../store/spaceTrackerStore";
 
 export interface Location {
@@ -259,7 +259,7 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const lastTickRef = useRef<number>(0);
   // Initialize satrec map for SGP4
-  const satrecMapRef = useRef<Record<string, satellite.SatRec>>({});
+  const satrecMapRef = useRef<Record<string, SatRec>>({});
   const [tleMap, setTleMap] = useState<Record<string, boolean>>({});
   const [dynamicTrackedObjects, setDynamicTrackedObjects] = useState<TrackedObject[]>(TrackedObjects);
   const [liveIss, setLiveIss] = useState<{latitude: number, longitude: number} | null>(null);
@@ -300,7 +300,7 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
             const tle1 = lines[i+1];
             const tle2 = lines[i+2];
             try {
-              const satrec = satellite.twoline2satrec(tle1, tle2);
+              const satrec = twoline2satrec(tle1, tle2);
               const id = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
               if (!satrecMapRef.current[id]) {
                 satrecMapRef.current[id] = satrec;
@@ -370,18 +370,18 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
         } else if (obj.type === "satellite") {
           const satrec = satrecMapRef.current[obj.id];
           if (satrec) {
-            const positionAndVelocity = satellite.propagate(satrec, date);
+            const positionAndVelocity = propagate(satrec, date);
             
             if (positionAndVelocity && positionAndVelocity.position && typeof positionAndVelocity.position !== "boolean") {
-              const gmst = satellite.gstime(date);
+              const gmst = gstime(date);
               const observerGd = {
                 longitude: activeLocation.lng * Math.PI / 180,
                 latitude: activeLocation.lat * Math.PI / 180,
                 height: 0,
               };
               
-              const positionEcf = satellite.eciToEcf(positionAndVelocity.position, gmst);
-              const lookAngles = satellite.ecfToLookAngles(observerGd, positionEcf);
+              const positionEcf = eciToEcf(positionAndVelocity.position, gmst);
+              const lookAngles = ecfToLookAngles(observerGd, positionEcf);
               
               const elevation = lookAngles.elevation * 180 / Math.PI;
               const azimuth = lookAngles.azimuth * 180 / Math.PI;
@@ -494,3 +494,4 @@ export const useSpaceTracker = () => {
   }
   return context;
 };
+
