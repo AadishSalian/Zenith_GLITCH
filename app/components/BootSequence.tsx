@@ -4,15 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSpaceTracker, Location } from "./SpaceTrackerContext";
 import { StarfieldCanvas } from "./StarfieldCanvas";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Map as LeafletMap, Marker as LeafletMarker, LeafletMouseEvent } from "leaflet";
-import { 
-  Check, 
-  Navigation, 
-  Globe, 
-  Search, 
-  Lock, 
-  Compass
-} from "lucide-react";
+import { Check, Navigation, Globe, Search, Lock, Compass } from "lucide-react";
+import { GlobeCanvas } from "./GlobeCanvas";
+import { HeroTitle } from "./HeroTitle";
 
 // City/Coordinates Geocoding database dictionary for manual queries
 const CityDictionary: Record<string, { lat: number; lng: number; label: string; country: string; flag: string }> = {
@@ -67,13 +61,11 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [hoveringBackground, setHoveringBackground] = useState<boolean>(false);
 
-  // Map state
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [mapHoverCoords, setMapHoverCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // Search state
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchFeedback, setSearchFeedback] = useState<{ text: string; error: boolean } | null>(null);
 
-  // Track state in Refs to prevent re-initializing the Leaflet map on coordinates update
+  // Track state in Refs
   const activeLocationRef = useRef(activeLocation);
   const setActiveLocationRef = useRef(setActiveLocation);
 
@@ -85,128 +77,23 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     setActiveLocationRef.current = setActiveLocation;
   }, [setActiveLocation]);
 
-  // Leaflet refs
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
-  const LRef = useRef<typeof import("leaflet") | null>(null);
-  const mapInstanceRef = useRef<LeafletMap | null>(null);
-  const markerRef = useRef<LeafletMarker | null>(null);
-
-  // Load Leaflet dynamically
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      import("leaflet").then((leaflet) => {
-        LRef.current = (leaflet.default || leaflet) as typeof import("leaflet");
-        setLeafletLoaded(true);
-      });
-    }
-  }, []);
-
-  // Initialize Leaflet map
-  useEffect(() => {
-    if (!leafletLoaded || !mapRef.current || mapInstanceRef.current || !LRef.current) return;
-    const L = LRef.current;
-
-    const pulseIcon = L.divIcon({
-      className: "custom-leaflet-pulse-icon",
-      html: `<div class="relative w-6 h-6 flex items-center justify-center pointer-events-none">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#ff007f] shadow-[0_0_8px_#ff007f] z-10"></span>
-        <span class="absolute w-6 h-6 border border-[#ff007f] rounded-full animate-ping opacity-75"></span>
-      </div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12]
+  const handleGlobeSelect = (lat: number, lng: number) => {
+    setActiveLocationRef.current({
+      lat,
+      lng,
+      label: "Custom Target Lock",
+      country: "Orbital Array",
+      flag: "🌍",
     });
-
-    const map = L.map(mapRef.current, {
-      center: [activeLocationRef.current.lat, activeLocationRef.current.lng],
-      zoom: 2,
-      zoomControl: true,
-      dragging: true,
-      touchZoom: true,
-      doubleClickZoom: true,
-      boxZoom: true,
-      keyboard: true,
-      minZoom: 1,
-      maxZoom: 12,
-      attributionControl: true,
-      scrollWheelZoom: false
+    setSearchFeedback({
+      text: `Geodetic lock: ${lat}° N, ${lng}° E`,
+      error: false,
     });
-
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      className: "base-map-tiles"
-    }).addTo(map);
-
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
-      className: "label-tiles"
-    }).addTo(map);
-
-    const marker = L.marker([activeLocationRef.current.lat, activeLocationRef.current.lng], { icon: pulseIcon }).addTo(map);
-
-    mapInstanceRef.current = map;
-    markerRef.current = marker;
-
-    map.on("click", (e: LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
-      const latFixed = parseFloat(lat.toFixed(4));
-      const lngFixed = parseFloat(lng.toFixed(4));
-
-      setActiveLocationRef.current({
-        lat: latFixed,
-        lng: lngFixed,
-        label: "Custom Target Lock",
-        country: "Custom Coordinates",
-        flag: "📍",
-      });
-
-      setSearchFeedback({
-        text: `Geodetic lock: ${latFixed}° N, ${lngFixed}° E`,
-        error: false,
-      });
-    });
-
-    map.on("mousemove", (e: LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
-      setMapHoverCoords({
-        lat: parseFloat(lat.toFixed(2)),
-        lng: parseFloat(lng.toFixed(2))
-      });
-    });
-
-    map.on("mouseout", () => {
-      setMapHoverCoords(null);
-    });
-
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-      markerRef.current = null;
-    };
-  }, [leafletLoaded]);
-
-  // Track coordinates sync and update map display
-  useEffect(() => {
-    if (mapInstanceRef.current && markerRef.current) {
-      const latlng: [number, number] = [activeLocation.lat, activeLocation.lng];
-      markerRef.current.setLatLng(latlng);
-      mapInstanceRef.current.panTo(latlng);
-      
-      const popupContent = `
-        <div class="font-mono text-[9px] leading-relaxed p-0.5">
-          <div class="text-[#ff007f] font-black tracking-wider border-b border-[#ff007f]/20 pb-0.5 mb-1 uppercase">
-            🛰️ TARGET LOCK: ${activeLocation.label.toUpperCase()}
-          </div>
-          <div class="text-white">LAT: <span class="text-[#00f3ff] font-bold">${activeLocation.lat.toFixed(4)}°</span></div>
-          <div class="text-white">LNG: <span class="text-[#00f3ff] font-bold">${activeLocation.lng.toFixed(4)}°</span></div>
-        </div>
-      `;
-      
-      markerRef.current.bindPopup(popupContent, { 
-        closeButton: false,
-        autoClose: false,
-        closeOnClick: false
-      }).openPopup();
-    }
-  }, [activeLocation.lat, activeLocation.lng, activeLocation.label]);
+    // Auto start calibration when clicking globe
+    setTimeout(() => {
+      setBootPhase("diagnostics");
+    }, 800);
+  };
 
   // Start Calibration
   const handleStartCalibration = () => {
@@ -366,16 +253,9 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
 
         {/* Center: Main title & subtitle */}
         <div className="text-center md:w-1/3 flex flex-col items-center">
-          <motion.h1 
-            animate={{ textShadow: ["0 0 10px rgba(0,243,255,0.2)", "0 0 20px rgba(0,243,255,0.4)", "0 0 10px rgba(0,243,255,0.2)"] }}
-            transition={{ repeat: Infinity, duration: 4 }}
-            className="font-mono text-xl md:text-2xl font-black tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-[#00f3ff] via-[#a78bfa] to-[#ff007f] filter drop-shadow-[0_0_12px_rgba(0,243,255,0.25)]"
-          >
-            ZENITH GLITCH
-          </motion.h1>
-          <p className="mt-1 text-[9px] font-mono tracking-[0.3em] text-slate-500 uppercase">
-            GEODETIC COORDINATE TRACKING SYSTEM
-          </p>
+          <div className="scale-75 origin-top mt-8">
+            <HeroTitle />
+          </div>
         </div>
 
         {/* Right: Observer lock */}
@@ -404,33 +284,20 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
               className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
             >
               {/* Clickable Map / Globe Selector (col-span-8) */}
-              <div className="lg:col-span-8 bg-[#030816] border border-[#101b33] rounded-xl p-5 flex flex-col gap-4">
+              <div className="lg:col-span-8 bg-[#030816]/60 backdrop-blur-md border border-[#101b33] rounded-xl p-5 flex flex-col gap-4 shadow-[0_0_30px_rgba(0,243,255,0.05)]">
                 <div className="flex items-center justify-between border-b border-[#101b33] pb-3">
                   <h2 className="text-[#00f3ff] font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Globe className="w-4 h-4" /> Cybernetic Targeting Grid
+                    <Globe className="w-4 h-4" /> 3D Orbital Selection Array
                   </h2>
-                  
-                  {/* Hover position readout */}
-                  {mapHoverCoords && (
-                    <div className="font-mono text-[9px] text-slate-500">
-                      SYS_LOCK: [ {mapHoverCoords.lat.toFixed(2)}°, {mapHoverCoords.lng.toFixed(2)}° ]
-                    </div>
-                  )}
                 </div>
 
-                {/* Map Wrapper with border integration */}
-                <div className="relative aspect-[2/1] w-full map-container-cyber" style={{ minHeight: "260px" }}>
-                  {/* Clickable World Map Container */}
-                  <div 
-                    ref={mapRef}
-                    className="w-full h-full bg-[#020612] z-10"
-                  />
-                  {/* Cybernetic map grid lines overlay */}
-                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.04)_1px,transparent_1px)] bg-[size:10%_20%] pointer-events-none z-20" />
+                {/* Globe Canvas Container */}
+                <div className="relative aspect-square md:aspect-[4/3] w-full rounded-lg overflow-hidden border border-cyan-500/20" style={{ minHeight: "400px" }}>
+                  <GlobeCanvas onLocationSelect={handleGlobeSelect} />
                 </div>
 
                 <div className="text-[10px] text-slate-500 font-mono text-center">
-                  💡 Zoom, drag, and click anywhere on the target array above to align geodetic tracking coordinates
+                  💡 Drag to rotate, click anywhere on the globe to lock tracking coordinates and transition to dashboard.
                 </div>
               </div>
 

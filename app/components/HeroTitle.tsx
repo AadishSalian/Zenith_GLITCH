@@ -2,18 +2,12 @@
 
 import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
-
-gsap.registerPlugin(SplitText, ScrollTrigger);
 
 export const HeroTitle: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
-    let split: SplitText | null = null;
-
     const ctx = gsap.context(() => {
       if (!alive) return;
 
@@ -24,11 +18,9 @@ export const HeroTitle: React.FC = () => {
         { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
       );
 
-      // Phase 2 — SplitText letter burst (t=0.3s delay)
-      split = new SplitText(".hero-heading", { type: "chars,words,lines" });
-      
+      // Phase 2 — Split letters burst
       gsap.fromTo(
-        split.chars,
+        ".char",
         { opacity: 0, scale: 0, y: 40, rotationX: 90 },
         {
           opacity: 1,
@@ -42,7 +34,7 @@ export const HeroTitle: React.FC = () => {
         }
       );
 
-      // Phase 3 — Subtitle and CTA fade in (after heading completes)
+      // Phase 3 — Subtitle and CTA fade in
       gsap.fromTo(
         [".hero-sub", ".cta-btn"],
         { opacity: 0, y: 20 },
@@ -59,33 +51,48 @@ export const HeroTitle: React.FC = () => {
 
     return () => {
       alive = false;
-      if (split) split.revert();
       ctx.revert();
     };
   }, []);
 
+  // Helper to split text into words and chars for GSAP
+  const renderSplitText = (text: string, className: string = "") => {
+    return text.split(" ").map((word, wIdx) => (
+      <span key={wIdx} className={`word inline-block ${className}`} style={{ whiteSpace: "nowrap" }}>
+        {word.split("").map((char, cIdx) => (
+          <span key={cIdx} className="char inline-block">{char}</span>
+        ))}
+        <span className="inline-block">&nbsp;</span>
+      </span>
+    ));
+  };
+
   return (
-    <div ref={containerRef} className="hero-title-wrapper relative z-10 text-center select-none">
-      <p className="overline-text text-[11px] tracking-[0.35em] text-cyan-400 uppercase mb-6 opacity-0">
+    <div ref={containerRef} className="hero-title-wrapper relative z-10 text-center select-none flex flex-col items-center">
+      <p className="overline-text text-[11px] tracking-[0.35em] text-cyan-400 uppercase mb-6 opacity-0 font-mono">
         // live sky tracking
       </p>
       
-      <h1 className="hero-heading text-[clamp(3rem,8vw,7rem)] font-bold leading-none tracking-tight text-white">
-        <span className="line-1">Track the</span>{" "}
-        <span className="line-2 accent-line block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-500">
-          <span className="word-cosmos">Cosmos</span>
-        </span>{" "}
-        <span className="line-3">in real time</span>
+      <h1 className="hero-heading text-[clamp(2.5rem,6vw,6rem)] font-bold leading-none tracking-tight text-white mb-2" style={{ perspective: "400px" }}>
+        <div className="line-1 overflow-hidden">
+          {renderSplitText("Track the")}
+        </div>
+        <div className="line-2 accent-line text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-500 my-1 overflow-hidden py-2">
+          {renderSplitText("Cosmos")}
+        </div>
+        <div className="line-3 overflow-hidden">
+          {renderSplitText("in real time")}
+        </div>
       </h1>
       
-      <p className="hero-sub mt-6 text-[1.1rem] text-white/50 tracking-wide opacity-0">
+      <p className="hero-sub mt-6 text-[1.1rem] text-white/50 tracking-wide opacity-0 max-w-lg mx-auto">
         ISS · Satellites · Planets · Stars — rendered live for your location
       </p>
       
-      <button className="cta-btn mt-10 px-8 py-3 rounded-full border border-cyan-500/40 text-cyan-300 text-sm tracking-widest hover:bg-cyan-500/10 transition-all duration-300 opacity-0">
-        Pick your location
-        <span className="cta-arrow ml-2">→</span>
-      </button>
+      <div className="cta-btn mt-10 px-8 py-3 rounded-full border border-cyan-500/40 text-cyan-300 text-[11px] font-mono tracking-widest uppercase opacity-0 mx-auto inline-flex items-center bg-cyan-500/5 backdrop-blur-sm">
+        Select target on orbital array
+        <span className="cta-arrow ml-2 mt-0.5 animate-bounce">↓</span>
+      </div>
     </div>
   );
 };

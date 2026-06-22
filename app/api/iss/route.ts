@@ -5,9 +5,15 @@ export const revalidate = 2;
 
 export async function GET() {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
     const res = await fetch("http://api.open-notify.org/iss-now.json", {
+      signal: controller.signal,
       next: { revalidate: 2 },
     });
+    
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch ISS data`);
