@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useSpaceTracker, Location } from "./SpaceTrackerContext";
-import { Navigation, Globe, Check, AlertCircle } from "lucide-react";
+import { Navigation, Globe, Check, AlertCircle, Cloud } from "lucide-react";
+
+const DynamicMap = dynamic(() => import("./MapComponent"), { ssr: false, loading: () => <div className="w-full h-full bg-[#050b18]/60 flex items-center justify-center font-mono text-[10px] text-slate-500 animate-pulse">Initializing Map Engine...</div> });
 
 export const LocationPicker: React.FC = () => {
   const { activeLocation, setActiveLocation, locationPresets } = useSpaceTracker();
@@ -14,6 +17,34 @@ export const LocationPicker: React.FC = () => {
   const [gpsDetecting, setGpsDetecting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<boolean>(false);
+  const [cloudCover, setCloudCover] = useState<string>("--");
+
+  // Sync inputs with active location changes
+  useEffect(() => {
+    setLatInput(activeLocation.lat.toString());
+    setLngInput(activeLocation.lng.toString());
+    setLabelInput(activeLocation.label);
+  }, [activeLocation]);
+
+  // Fetch Weather
+  useEffect(() => {
+    async function fetchWeather() {
+      try {
+        const res = await fetch(`/api/weather?lat=${activeLocation.lat}&lon=${activeLocation.lng}`);
+        const data = await res.json();
+        if (data.current?.cloud_cover !== undefined) {
+          setCloudCover(`${data.current.cloud_cover}%`);
+        } else {
+          setCloudCover("--");
+        }
+      } catch (e) {
+        setCloudCover("ERR");
+      }
+    }
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 60000);
+    return () => clearInterval(interval);
+  }, [activeLocation.lat, activeLocation.lng]);
 
   // Formatter for coordinates display inside buttons
   const formatLat = (lat: number) => {
@@ -249,8 +280,13 @@ export const LocationPicker: React.FC = () => {
       {/* 4. Separator */}
       <div className="relative flex items-center">
         <div className="flex-grow border-t border-[#101b33]"></div>
-        <span className="flex-shrink mx-3 text-[9px] text-slate-600 uppercase tracking-widest font-semibold">or manual align</span>
+        <span className="flex-shrink mx-3 text-[9px] text-slate-600 uppercase tracking-widest font-semibold">Interactive Map</span>
         <div className="flex-grow border-t border-[#101b33]"></div>
+      </div>
+
+      {/* 4.5. Map UI */}
+      <div className="w-full h-40 border border-slate-800/80 rounded-lg overflow-hidden relative z-0">
+        <DynamicMap activeLocation={activeLocation} setActiveLocation={setActiveLocation} />
       </div>
 
       {/* 5. Coordinates Grid Display (Inputs & Telemetry parameters) */}
@@ -322,6 +358,20 @@ export const LocationPicker: React.FC = () => {
             {timeState.utc}
           </span>
           <span className="text-[8px] text-slate-500 font-medium leading-none mt-0.5">Orbital Baseline</span>
+        </div>
+
+        {/* Cloud Cover Card */}
+        <div className="col-span-2 bg-[#050b18]/60 border border-slate-800/80 rounded-lg p-3 flex items-center justify-between">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] uppercase tracking-wider text-[#38bdf8] font-bold flex items-center gap-1.5">
+              <Cloud className="w-3 h-3 text-slate-400" />
+              Live Cloud Cover
+            </span>
+            <span className="text-[8px] text-slate-500 font-medium leading-none mt-0.5">Open-Meteo Feed</span>
+          </div>
+          <span className="text-white font-mono text-lg font-bold leading-none py-0.5 mt-0.5">
+            {cloudCover}
+          </span>
         </div>
 
       </div>
