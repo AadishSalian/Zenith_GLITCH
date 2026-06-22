@@ -112,7 +112,7 @@ self.onmessage = (e) => {
           const satrec = satrecMap[obj.id];
           const positionAndVelocity = satellite.propagate(satrec, date);
           
-          if (positionAndVelocity.position && typeof positionAndVelocity.position !== "boolean") {
+          if (positionAndVelocity && positionAndVelocity.position && typeof positionAndVelocity.position !== "boolean") {
             const gmst = satellite.gstime(date);
             
             const observerGd = {
@@ -126,7 +126,7 @@ self.onmessage = (e) => {
             
             const elevation = lookAngles.elevation * 180 / Math.PI;
             const azimuth = lookAngles.azimuth * 180 / Math.PI;
-            const range = lookAngles.range;
+            const range = lookAngles.rangeSat;
             
             nextPositions[obj.id] = {
               azimuth,

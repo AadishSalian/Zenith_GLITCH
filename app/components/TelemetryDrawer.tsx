@@ -23,12 +23,12 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
       setIsLoadingWiki(true);
       setWikiSummary(null);
       try {
-        let query = activeObj.name;
-        if (activeObj.id === "iss") query = "International Space Station";
-        if (activeObj.id === "hst") query = "Hubble Space Telescope";
+        let query = activeObj?.name || "";
+        if (activeObj?.id === "iss") query = "International Space Station";
+        if (activeObj?.id === "hst") query = "Hubble Space Telescope";
         
         // For general satellites that might just be "STARLINK-..."
-        if (activeObj.type === "satellite" && activeObj.id !== "iss" && activeObj.id !== "hst") {
+        if (activeObj?.type === "satellite" && activeObj?.id !== "iss" && activeObj?.id !== "hst") {
           query = "Artificial_satellite"; // Default back to satellite if no specific page expected for random objects, or we can try their name
         }
 

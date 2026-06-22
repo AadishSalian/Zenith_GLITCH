@@ -239,7 +239,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       <div className="absolute inset-x-0 h-1 bg-[#00f3ff]/10 blur-[1px] scanline-scanner pointer-events-none" />
 
       {/* Dynamic Starfield Background Layers */}
-      <StarfieldCanvas hoveringBackground={hoveringBackground} />
+      <StarfieldCanvas />
 
       {/* Top Header Bar */}
       <header 

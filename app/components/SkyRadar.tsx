@@ -103,7 +103,7 @@ export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
         ease: "power2.inOut",
         onUpdate: () => {
           if (!alive) return;
-          sweepPath.attr("d", arcGen({ endAngle: sweepProgressRef.current.angle }) as string);
+          sweepPath.attr("d", arcGen({ innerRadius: 0, outerRadius: R, startAngle: 0, endAngle: sweepProgressRef.current.angle } as any) as string);
         },
         onComplete: () => {
           if (!alive) return;
@@ -111,7 +111,7 @@ export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
         }
       });
     } else {
-      sweepPath.attr("d", arcGen({ endAngle: Math.PI * 2 }) as string).style("opacity", 0);
+      sweepPath.attr("d", arcGen({ innerRadius: 0, outerRadius: R, startAngle: 0, endAngle: Math.PI * 2 } as any) as string).style("opacity", 0);
     }
 
     // Filter Logic
