@@ -1,191 +1,252 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import gsap from "gsap";
+import { RadarObject, polarToCartesian } from "../lib/radar-utils";
 import { useSpaceTracker } from "./SpaceTrackerContext";
-import { Orbit } from "lucide-react";
 
-export const SkyRadar: React.FC = () => {
-  const {
-    activeLocation,
-    selectedObjectId,
-    setSelectedObjectId,
-    trackedObjects,
-    positions,
-    hudGridEnabled,
-    activeFilter,
-  } = useSpaceTracker();
+interface SkyRadarProps {
+  className?: string;
+}
 
-  const svgRef = useRef<SVGSVGElement>(null);
+export const SkyRadar: React.FC<SkyRadarProps> = ({ className = "" }) => {
+  // We map the requested store pattern to the existing project's context logic
+  const { trackedObjects, positions, activeFilter, selectedObjectId, setSelectedObjectId } = useSpaceTracker();
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setTilt({ x: -(y / (rect.height / 2)) * 6, y: (x / (rect.width / 2)) * 6 });
-  };
-
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
+  
+  // Ref to hold animation progress for the sweep arc
+  const sweepProgressRef = useRef({ angle: 0 });
 
   useEffect(() => {
+    if (!svgRef.current || !containerRef.current) return;
+
+    // Use ResizeObserver for responsive SVG dimensions
+    const observer = new ResizeObserver((entries) => {
+      if (!entries[0] || !svgRef.current) return;
+      // Force square aspect ratio constraint from container
+      const { width, height } = entries[0].contentRect;
+      const size = Math.min(width, height);
+      svgRef.current.style.width = `${size}px`;
+      svgRef.current.style.height = `${size}px`;
+    });
+    observer.observe(containerRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
     if (!svgRef.current) return;
+
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove(); // Clear previous
+    svg.selectAll("*").remove(); // Re-render clean
 
-    const width = 400;
-    const height = 400;
-    const margin = 35;
-    const center = width / 2;
-    const maxRadius = center - margin;
+    const R = 220;
+    
+    // Create translation group matching viewBox 0 0 500 500
+    const g = svg.append("g")
+      .attr("transform", "translate(250,250)");
 
-    // Filter objects
-    const visibleObjects = trackedObjects.filter((obj) => {
-      if (activeFilter === "all") return true;
-      if (activeFilter === "satellite") return obj.type === "satellite";
-      if (activeFilter === "planet") return obj.type === "planet";
-      if (activeFilter === "iss") return obj.id === "iss";
-      return true;
+    // Layer 1: Grids
+    const grids = g.append("g").attr("class", "layer-grids");
+    
+    // Concentric elevation rings
+    [R, R * 0.66, R * 0.33].forEach(r => {
+      grids.append("circle")
+        .attr("r", r)
+        .attr("fill", "none")
+        .attr("stroke", "rgba(0, 243, 255, 0.15)")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "4 4");
     });
 
-    const projection = (azimuth: number, elevation: number) => {
-      const elFactor = (90 - Math.max(0, elevation)) / 90;
-      const dist = maxRadius * elFactor;
-      const rad = (azimuth * Math.PI) / 180;
-      const x = center + Math.sin(rad) * dist;
-      const y = center - Math.cos(rad) * dist;
-      return { x, y };
-    };
+    // Crosshairs
+    grids.append("line").attr("x1", -R).attr("y1", 0).attr("x2", R).attr("y2", 0).attr("stroke", "rgba(0, 243, 255, 0.2)");
+    grids.append("line").attr("x1", 0).attr("y1", -R).attr("x2", 0).attr("y2", R).attr("stroke", "rgba(0, 243, 255, 0.2)");
 
-    // Draw Grid
-    if (hudGridEnabled) {
-      const grid = svg.append("g").attr("class", "grid");
+    // Layer 2: Labels
+    const labels = g.append("g").attr("class", "layer-labels");
+    const cardinals = [
+      { t: "N", a: 0 }, { t: "E", a: 90 }, { t: "S", a: 180 }, { t: "W", a: 270 }
+    ];
+    cardinals.forEach(c => {
+      const pos = polarToCartesian(c.a, 0, R + 15);
+      labels.append("text")
+        .attr("x", pos.x)
+        .attr("y", pos.y)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("fill", "rgba(0, 243, 255, 0.5)")
+        .style("font-family", "monospace")
+        .style("font-size", "11px")
+        .text(c.t);
+    });
+
+    // Layer 3: Radar Sweep Arc Reveal
+    const arcGroup = g.append("g").attr("class", "layer-sweep");
+    const arcGen = d3.arc()
+      .innerRadius(0)
+      .outerRadius(R)
+      .startAngle(0);
       
-      // Elevation circles
-      [30, 60].forEach((el) => {
-        const r = maxRadius * ((90 - el) / 90);
-        grid.append("circle")
-          .attr("cx", center).attr("cy", center).attr("r", r)
-          .attr("fill", "none").attr("stroke", "rgba(124, 58, 237, 0.12)").attr("stroke-width", 1);
-        grid.append("text")
-          .attr("x", center + 5).attr("y", center - r + 3)
-          .attr("fill", "rgba(124, 58, 237, 0.4)").attr("font-size", "8px").attr("font-family", "monospace")
-          .text(`${el}° EL`);
+    const sweepPath = arcGroup.append("path")
+      .attr("fill", "rgba(0, 243, 255, 0.1)");
+
+    // Only animate from 0 on the first mount, else just maintain position
+    if (sweepProgressRef.current.angle === 0) {
+      gsap.to(sweepProgressRef.current, {
+        angle: Math.PI * 2,
+        duration: 2.2,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          if (!alive) return;
+          sweepPath.attr("d", arcGen({ endAngle: sweepProgressRef.current.angle }) as string);
+        },
+        onComplete: () => {
+          if (!alive) return;
+          gsap.to(sweepPath.node(), { opacity: 0, duration: 1.0 });
+        }
+      });
+    } else {
+      sweepPath.attr("d", arcGen({ endAngle: Math.PI * 2 }) as string).style("opacity", 0);
+    }
+
+    // Filter Logic
+    const visibleObjects = trackedObjects.filter(obj => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "iss") return obj.id === "iss";
+      return obj.type === activeFilter;
+    });
+
+    // Map to RadarObject
+    const mappedObjects: RadarObject[] = visibleObjects.map(obj => {
+      const pos = positions[obj.id] || { azimuth: Math.random() * 360, elevation: Math.random() * 90 };
+      let color = "#fff";
+      if (obj.id === "iss") color = "#00f3ff";
+      else if (obj.type === "satellite") color = "#c084fc";
+      else if (obj.type === "planet") color = "#f97316";
+
+      return {
+        id: obj.id,
+        type: obj.type as "iss" | "satellite" | "planet" | "star",
+        label: obj.name,
+        azimuth: pos.azimuth,
+        elevation: pos.elevation,
+        color,
+        size: obj.id === "iss" ? 5 : 3
+      };
+    });
+
+    // Layer 4: Data Dots
+    const dotsGroup = g.append("g").attr("class", "layer-dots");
+    const dots = dotsGroup.selectAll(".radar-dot")
+      .data(mappedObjects, (d: any) => d.id);
+
+    const dotsEnter = dots.enter()
+      .append("g")
+      .attr("class", "radar-dot")
+      .style("cursor", "pointer")
+      .on("click", (e, d) => setSelectedObjectId(d.id));
+
+    dotsEnter.append("circle")
+      .attr("class", "dot-circle")
+      .attr("r", 0)
+      .attr("fill", d => d.color);
+
+    dotsEnter.append("text")
+      .attr("class", "dot-label")
+      .attr("x", 10)
+      .attr("y", 3)
+      .attr("fill", d => d.id === selectedObjectId ? d.color : "rgba(255,255,255,0.4)")
+      .style("font-family", "monospace")
+      .style("font-size", "9px")
+      .text(d => d.label.substring(0, 12));
+
+    const dotsMerge = dotsEnter.merge(dots as any);
+
+    // Update positions with a nice bounce transition
+    dotsMerge.transition().duration(1000).ease(d3.easeElasticOut)
+      .attr("transform", (d: RadarObject) => {
+        const p = polarToCartesian(d.azimuth, d.elevation, R);
+        return `translate(${p.x},${p.y})`;
       });
 
-      // Horizon circle
-      grid.append("circle")
-        .attr("cx", center).attr("cy", center).attr("r", maxRadius)
-        .attr("fill", "none").attr("stroke", "rgba(0, 243, 255, 0.2)").attr("stroke-width", 1.5);
+    dotsMerge.select(".dot-circle")
+      .attr("r", (d: RadarObject) => d.id === selectedObjectId ? (d.size || 3) * 1.5 : (d.size || 3));
 
-      // Crosslines
-      grid.append("line").attr("x1", center).attr("y1", margin).attr("x2", center).attr("y2", height - margin).attr("stroke", "rgba(124, 58, 237, 0.08)").attr("stroke-width", 0.5);
-      grid.append("line").attr("x1", margin).attr("y1", center).attr("x2", width - margin).attr("y2", center).attr("stroke", "rgba(124, 58, 237, 0.08)").attr("stroke-width", 0.5);
+    dotsMerge.select(".dot-label")
+      .attr("fill", (d: RadarObject) => d.id === selectedObjectId ? d.color : "rgba(255,255,255,0.4)")
+      .style("font-weight", (d: RadarObject) => d.id === selectedObjectId ? "bold" : "normal");
 
-      // Compass Labels
-      const labels = [
-        { text: "N", x: center, y: margin - 15 },
-        { text: "S", x: center, y: height - margin + 15 },
-        { text: "E", x: width - margin + 15, y: center },
-        { text: "W", x: margin - 15, y: center },
-      ];
-      labels.forEach(l => {
-        grid.append("text")
-          .attr("x", l.x).attr("y", l.y)
-          .attr("fill", "rgba(0, 243, 255, 0.6)").attr("font-size", "10px").attr("font-weight", "bold").attr("font-family", "monospace")
-          .attr("text-anchor", "middle").attr("alignment-baseline", "middle")
-          .text(l.text);
+    dots.exit().transition().duration(300).style("opacity", 0).remove();
+
+    // Layer 5: Target Reticle
+    const reticleGroup = g.append("g").attr("class", "layer-reticle");
+    const selectedObj = mappedObjects.find(o => o.id === selectedObjectId);
+    
+    if (selectedObj) {
+      const pos = polarToCartesian(selectedObj.azimuth, selectedObj.elevation, R);
+      
+      const reticle = reticleGroup.append("circle")
+        .attr("cx", pos.x)
+        .attr("cy", pos.y)
+        .attr("r", 14)
+        .attr("fill", "none")
+        .attr("stroke", selectedObj.color)
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "3 3");
+
+      gsap.to(reticle.node(), {
+        rotation: 360,
+        transformOrigin: `${pos.x}px ${pos.y}px`,
+        repeat: -1,
+        duration: 6,
+        ease: "linear"
+      });
+      
+      const pulse = reticleGroup.append("circle")
+        .attr("cx", pos.x)
+        .attr("cy", pos.y)
+        .attr("r", 16)
+        .attr("fill", "none")
+        .attr("stroke", selectedObj.color)
+        .attr("stroke-opacity", 0.3)
+        .attr("stroke-width", 2);
+
+      gsap.to(pulse.node(), {
+        scale: 1.5,
+        opacity: 0,
+        transformOrigin: `${pos.x}px ${pos.y}px`,
+        repeat: -1,
+        duration: 1.5,
+        ease: "power2.out"
       });
     }
 
-    // Draw Objects
-    const objectsGroup = svg.append("g").attr("class", "objects");
+    return () => {
+      alive = false;
+      // Kill GSAP tweens when component unmounts
+      gsap.killTweensOf(sweepProgressRef.current);
+    };
 
-    visibleObjects.forEach(obj => {
-      const pos = positions[obj.id];
-      if (!pos || !pos.isAboveHorizon) return;
-
-      const { x, y } = projection(pos.azimuth, pos.elevation);
-      const isSelected = obj.id === selectedObjectId;
-      
-      let dotColor = "rgba(124, 58, 237, 0.4)";
-      let ringColor = "rgba(124, 58, 237, 0.15)";
-      
-      if (obj.id === "iss") { dotColor = "#00f3ff"; ringColor = "rgba(0, 243, 255, 0.25)"; }
-      else if (obj.id === "hst") { dotColor = "#a78bfa"; ringColor = "rgba(167, 139, 250, 0.25)"; }
-      else if (obj.type === "planet") {
-        if (obj.id === "mars") dotColor = "#f97316";
-        else if (obj.id === "venus") dotColor = "#fbbf24";
-        else if (obj.id === "jupiter") dotColor = "#e8d3a7";
-        else if (obj.id === "saturn") dotColor = "#c084fc";
-        ringColor = "rgba(255,255,255,0.08)";
-      }
-
-      const objNode = objectsGroup.append("g")
-        .style("cursor", "pointer")
-        .on("click", () => setSelectedObjectId(obj.id));
-
-      // Outer ring
-      objNode.append("circle")
-        .attr("cx", x).attr("cy", y)
-        .attr("r", isSelected ? 12 : 8)
-        .attr("fill", "none")
-        .attr("stroke", ringColor)
-        .attr("stroke-width", 1);
-
-      if (isSelected) {
-        objNode.append("circle")
-          .attr("cx", x).attr("cy", y)
-          .attr("r", 15)
-          .attr("fill", "none")
-          .attr("stroke", dotColor)
-          .attr("stroke-opacity", 0.25)
-          .attr("stroke-width", 1.5)
-          .classed("animate-pulse", true);
-      }
-
-      // Dot
-      objNode.append("circle")
-        .attr("cx", x).attr("cy", y)
-        .attr("r", isSelected ? 4 : 3)
-        .attr("fill", dotColor);
-
-      // Label
-      objNode.append("text")
-        .attr("x", x + (isSelected ? 16 : 12))
-        .attr("y", y)
-        .attr("fill", isSelected ? dotColor : "rgba(237, 237, 237, 0.5)")
-        .attr("font-size", isSelected ? "9px" : "9px")
-        .attr("font-weight", isSelected ? "bold" : "normal")
-        .attr("font-family", "monospace")
-        .attr("alignment-baseline", "middle")
-        .text(obj.name.substring(0, 15));
-    });
-
-  }, [positions, selectedObjectId, trackedObjects, hudGridEnabled, activeFilter, setSelectedObjectId]);
+  }, [trackedObjects, positions, activeFilter, selectedObjectId, setSelectedObjectId]);
 
   return (
-    <div className="bg-[#030816] border border-[#101b33] rounded-xl p-5 flex flex-col items-center justify-between relative h-full select-none font-sans">
-      <div className="w-full flex flex-col gap-0.5 border-b border-[#101b33] pb-3 mb-2.5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[#00f3ff] font-bold text-sm tracking-wide uppercase flex items-center gap-2">
-            <Orbit className="w-4 h-4 text-[#00f3ff] animate-[spin_10s_linear_infinite]" />
-            Sky Radar System
-          </h2>
-        </div>
-      </div>
-      <div
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{ transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, transition: "transform 0.1s ease-out" }}
-        className="relative cursor-crosshair flex items-center justify-center p-4 border border-[#101b33] rounded-full bg-[#050b18]/80 overflow-hidden shadow-[0_0_20px_rgba(0,243,255,0.05)]"
-      >
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#7c3aed]/2 via-transparent to-[#00f3ff]/2 pointer-events-none rounded-full" />
-        <svg ref={svgRef} width="400" height="400" className="relative z-10" />
-      </div>
+    <div 
+      ref={containerRef} 
+      className={`relative w-full h-full flex items-center justify-center overflow-hidden select-none bg-[#030816]/30 backdrop-blur-md rounded-xl border border-cyan-500/10 ${className}`}
+    >
+      <svg
+        ref={svgRef}
+        viewBox="0 0 500 500"
+        preserveAspectRatio="xMidYMid meet"
+        className="max-w-full max-h-full"
+      />
     </div>
   );
 };
+
+export default SkyRadar;
