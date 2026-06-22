@@ -135,10 +135,11 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-to-tr from-[#020612] via-transparent to-[#020612]/30 pointer-events-none z-0" />
 
       {/* Dynamic Starfield Background Layers */}
-      <StarfieldCanvas />
+      <StarfieldCanvas hoveringBackground={hoveringBackground} />
 
       {/* LEFT NAVIGATION SIDEBAR */}
       <aside 
+        onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
         className="w-56 border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex flex-col justify-between py-6 px-4 shrink-0 z-10 relative"
       >
         <div className="flex flex-col gap-8">
