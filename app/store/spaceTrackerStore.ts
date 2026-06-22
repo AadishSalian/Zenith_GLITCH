@@ -23,6 +23,8 @@ interface SpaceTrackerState {
   setHudGridEnabled: (val: boolean) => void;
   trackingActive: boolean;
   setTrackingActive: (val: boolean) => void;
+  activeFilter: "all" | "satellite" | "planet" | "iss";
+  setActiveFilter: (filter: "all" | "satellite" | "planet" | "iss") => void;
 }
 
 export const useSpaceTrackerStore = create<SpaceTrackerState>((set) => ({
@@ -43,4 +45,7 @@ export const useSpaceTrackerStore = create<SpaceTrackerState>((set) => ({
   setHudGridEnabled: (val) => set({ hudGridEnabled: val }),
   trackingActive: true,
   setTrackingActive: (val) => set({ trackingActive: val }),
+  activeFilter: "all",
+  setActiveFilter: (filter) => set({ activeFilter: filter }),
 }));
+
