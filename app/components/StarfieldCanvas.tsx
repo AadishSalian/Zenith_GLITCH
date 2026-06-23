@@ -31,7 +31,11 @@ const LAYER_CONFIG = {
 
 const lerp = (start: number, end: number, t: number) => start + (end - start) * t;
 
-export const StarfieldCanvas = () => {
+interface StarfieldCanvasProps {
+  hoveringBackground?: boolean;
+}
+
+export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({ hoveringBackground }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const starsRef = useRef<Star[]>([]);
   const animProgressRef = useRef({ progress: 0 });

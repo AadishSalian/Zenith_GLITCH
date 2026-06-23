@@ -127,7 +127,7 @@ export default function Home() {
     <div 
       onMouseEnter={() => setHoveringBackground(true)}
       onMouseLeave={() => setHoveringBackground(false)}
-      className={`flex min-h-screen bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
+      className={`flex flex-col md:flex-row min-h-screen bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
     >
       
       {/* BACKGROUND SCI-FI GRID OVERLAY */}
@@ -140,33 +140,41 @@ export default function Home() {
       {/* LEFT NAVIGATION SIDEBAR */}
       <aside 
         onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
-        className="w-56 border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex flex-col justify-between py-6 px-4 shrink-0 z-10 relative"
+        className="w-full md:w-56 border-b md:border-b-0 md:border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex flex-col justify-between py-4 md:py-6 px-4 shrink-0 z-20 relative md:h-screen md:sticky md:top-0"
       >
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col md:flex-col gap-4 md:gap-8">
           
           {/* Logo Brand */}
-          <div className="flex items-center gap-3 px-2">
-            {/* Spinning space globe symbol */}
-            <div className="w-8 h-8 rounded-full border border-dashed border-[#00f3ff] flex items-center justify-center animate-[spin_25s_linear_infinite] relative shadow-[0_0_12px_rgba(0,243,255,0.15)] bg-black/40">
-              <span className="w-4 h-4 rounded-full bg-[#00f3ff]/20 flex items-center justify-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00f3ff]" />
-              </span>
+          <div className="flex items-center justify-between md:justify-start gap-3 px-2">
+            <div className="flex items-center gap-3">
+              {/* Spinning space globe symbol */}
+              <div className="w-8 h-8 rounded-full border border-dashed border-[#00f3ff] flex items-center justify-center animate-[spin_25s_linear_infinite] relative shadow-[0_0_12px_rgba(0,243,255,0.15)] bg-black/40">
+                <span className="w-4 h-4 rounded-full bg-[#00f3ff]/20 flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00f3ff]" />
+                </span>
+              </div>
+              <div>
+                <h1 className="font-mono text-xs font-black tracking-[0.25em] text-white">
+                  ZENITH
+                </h1>
+                <span className="text-[#00f3ff] font-mono text-[9px] tracking-[0.2em] font-bold block mt-0.5">
+                  GLITCH
+                </span>
+              </div>
             </div>
-            <div>
-              <h1 className="font-mono text-xs font-black tracking-[0.25em] text-white">
-                ZENITH
-              </h1>
-              <span className="text-[#00f3ff] font-mono text-[9px] tracking-[0.2em] font-bold block mt-0.5">
-                GLITCH
+            {/* System Status (Mobile only) */}
+            <div className="md:hidden flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex items-center justify-center relative">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
               </span>
             </div>
           </div>
 
           {/* Navigation Links list */}
-          <nav className="flex flex-col gap-1.5">
+          <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
             <button 
               onClick={() => setActiveTab("dashboard")}
-              className={`w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
+              className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "dashboard"
                   ? "sidebar-btn-active"
                   : "text-[#ededed]/60 hover:text-white hover:bg-slate-900/50"
@@ -177,7 +185,7 @@ export default function Home() {
             </button>
             <button 
               onClick={() => { setActiveTab("iss"); setSelectedObjectId("iss"); }}
-              className={`w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
+              className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "iss"
                   ? "sidebar-btn-active"
                   : "text-[#ededed]/60 hover:text-white hover:bg-slate-900/50"
@@ -193,7 +201,7 @@ export default function Home() {
                   setSelectedObjectId("mars"); 
                 }
               }}
-              className={`w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
+              className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "planets"
                   ? "sidebar-btn-active"
                   : "text-[#ededed]/60 hover:text-white hover:bg-slate-900/50"
@@ -204,7 +212,7 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab("skymap")}
-              className={`w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
+              className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "skymap"
                   ? "sidebar-btn-active"
                   : "text-[#ededed]/60 hover:text-white hover:bg-slate-900/50"
@@ -215,7 +223,7 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab("passes")}
-              className={`w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
+              className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "passes"
                   ? "sidebar-btn-active"
                   : "text-[#ededed]/60 hover:text-white hover:bg-slate-900/50"
@@ -226,7 +234,7 @@ export default function Home() {
             </button>
             <button 
               onClick={() => setActiveTab("settings")}
-              className={`w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
+              className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "settings"
                   ? "sidebar-btn-active"
                   : "text-[#ededed]/60 hover:text-white hover:bg-slate-900/50"
@@ -238,8 +246,8 @@ export default function Home() {
           </nav>
         </div>
 
-        {/* Sidebar Footer status */}
-        <div className="border-t border-[#101b33] pt-4 px-2 flex items-center gap-2">
+        {/* Sidebar Footer status (Desktop only) */}
+        <div className="hidden md:flex border-t border-[#101b33] pt-4 px-2 items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex items-center justify-center relative">
             <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
           </span>
@@ -336,7 +344,7 @@ export default function Home() {
         </header>
 
         {/* Dashboard Grid workspace */}
-        <main className="flex-1 p-6 flex items-stretch max-w-7xl w-full mx-auto overflow-y-auto min-h-0">
+        <main className="flex-1 p-3 md:p-6 flex items-stretch max-w-7xl w-full mx-auto overflow-y-auto min-h-0">
           <AnimatePresence mode="wait">
             {/* TAB 1: DASHBOARD VIEW */}
             {activeTab === "dashboard" && (
@@ -458,7 +466,7 @@ export default function Home() {
                 transition={{ duration: 0.4 }}
                 className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full col-span-12"
               >
-                <div className="lg:col-span-5">
+                <div className="lg:col-span-5 flex flex-col items-stretch">
                   <ISSTracker />
                 </div>
                 <div className="lg:col-span-7 flex flex-col gap-6">
@@ -481,7 +489,7 @@ export default function Home() {
                 transition={{ duration: 0.4 }}
                 className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full col-span-12"
               >
-                <div className="lg:col-span-5">
+                <div className="lg:col-span-5 flex flex-col items-stretch">
                   <PlanetTracker />
                 </div>
                 <div className="lg:col-span-7 flex flex-col gap-6">

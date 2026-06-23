@@ -64,7 +64,6 @@ body {
     linear-gradient(to bottom, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
   background-position: center center;
-  position: relative;
 }
 
 .space-grid::after {
@@ -258,3 +257,5 @@ body {
   box-shadow: 0 0 20px rgba(0, 243, 255, 0.15), inset 0 0 10px rgba(0, 243, 255, 0.05) !important;
   overflow: hidden !important;
 }
+
+@layer utilities { .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } }

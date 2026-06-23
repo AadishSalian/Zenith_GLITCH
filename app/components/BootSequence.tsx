@@ -343,16 +343,18 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     <div
       onMouseEnter={() => setHoveringBackground(true)}
       onMouseLeave={() => setHoveringBackground(false)}
-      className={`fixed inset-0 z-50 flex flex-col items-center bg-[#020612] space-grid overflow-hidden transition-all duration-1000 ${
+      className={`fixed inset-0 z-50 bg-[#020612] transition-all duration-1000 ${
         glitchActive ? "scale-105 opacity-0 brightness-150 filter saturate-200" : ""
       }`}
     >
-      {/* HUD scanline and screen glow filters */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#020612] via-transparent to-[#020612] pointer-events-none" />
-      <div className="absolute inset-x-0 h-1 bg-[#00f3ff]/10 blur-[1px] scanline-scanner pointer-events-none" />
-
-      {/* Dynamic Starfield Background Layers */}
+      {/* Backgrounds */}
+      <div className="absolute inset-0 space-grid pointer-events-none z-0" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#020612]/10 via-transparent to-[#020612]/10 pointer-events-none z-1" />
+      <div className="absolute inset-x-0 h-1 bg-[#00f3ff]/10 blur-[1px] scanline-scanner pointer-events-none z-10" />
       <StarfieldCanvas hoveringBackground={hoveringBackground} />
+
+      {/* Scrolling Content */}
+      <div className="absolute inset-0 z-20 overflow-y-auto overflow-x-hidden flex flex-col items-center">
 
       {/* Top Header Bar */}
       <header 
@@ -610,10 +612,12 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       {/* Footer metadata details */}
       <div 
         onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
-        className="absolute bottom-6 font-mono text-[9px] tracking-widest text-slate-700"
+        className="w-full text-center mt-auto py-6 font-mono text-[9px] tracking-widest text-slate-700"
       >
         GEODETIC CALIBRATION GRID LOCK // AZ/EL INTERCEPT ENGINE v4.8
       </div>
+      
+      </div> {/* End Scrolling Content */}
     </div>
   );
 };

@@ -389,22 +389,36 @@ export const SkyChart: React.FC = () => {
           ctx.stroke();
         }
 
-        // Draw labeling text
-        ctx.fillStyle = isSelected ? dotColor : "rgba(237, 237, 237, 0.5)";
-        ctx.font = isSelected ? "bold 9px monospace" : "9px monospace";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.fillText(obj.name, p.x + (isSelected ? 16 : 12), p.y);
+        // Check if this object should have a text label rendered to avoid clutter
+        let isHoveredLocal = false;
+        if (mousePos) {
+          const dx = mousePos.x - p.x;
+          const dy = mousePos.y - p.y;
+          if (Math.sqrt(dx * dx + dy * dy) < 16) {
+            isHoveredLocal = true;
+          }
+        }
+        
+        const isProminent = obj.type === "planet" || obj.id === "iss" || obj.id === "hst";
+        
+        // Only draw labeling text for selected, hovered, or prominent objects
+        if (isSelected || isHoveredLocal || isProminent) {
+          ctx.fillStyle = isSelected ? dotColor : "rgba(237, 237, 237, 0.5)";
+          ctx.font = isSelected ? "bold 9px monospace" : "9px monospace";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(obj.name, p.x + (isSelected ? 16 : 12), p.y);
 
-        // Subtext details if selected
-        if (isSelected) {
-          ctx.fillStyle = "rgba(237, 237, 237, 0.4)";
-          ctx.font = "7px monospace";
-          ctx.fillText(
-            `${pos.elevation.toFixed(1)}° EL / ${pos.azimuth.toFixed(0)}° AZ`,
-            p.x + 16,
-            p.y + 9
-          );
+          // Subtext details if selected
+          if (isSelected) {
+            ctx.fillStyle = "rgba(237, 237, 237, 0.4)";
+            ctx.font = "7px monospace";
+            ctx.fillText(
+              `${pos.elevation.toFixed(1)}° EL / ${pos.azimuth.toFixed(0)}° AZ`,
+              p.x + 16,
+              p.y + 9
+            );
+          }
         }
       });
 
@@ -472,7 +486,7 @@ export const SkyChart: React.FC = () => {
           ref={canvasRef}
           width={canvasSize * dpr}
           height={canvasSize * dpr}
-          style={{ width: `${canvasSize}px`, height: `${canvasSize}px` }}
+          style={{ width: "100%", maxWidth: `${canvasSize}px`, height: "auto", aspectRatio: "1/1" }}
           className="relative z-10 transition-all duration-300"
         />
 
@@ -485,7 +499,7 @@ export const SkyChart: React.FC = () => {
       </div>
 
       {/* Stats Row from mockup */}
-      <div className="w-full grid grid-cols-4 gap-2 bg-[#050b18]/65 border border-[#101b33] rounded-lg p-3 text-center my-3">
+      <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#050b18]/65 border border-[#101b33] rounded-lg p-3 text-center my-3">
         <div className="flex flex-col gap-0.5 border-r border-[#101b33] last:border-r-0">
           <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold leading-none">Dome Status</span>
           <span className="text-emerald-400 font-bold text-[10px] uppercase mt-1 leading-none">Calibrated</span>
@@ -505,7 +519,7 @@ export const SkyChart: React.FC = () => {
       </div>
 
       {/* Legend display */}
-      <div className="w-full grid grid-cols-4 gap-1 text-[8px] text-[#ededed]/50 pt-3 border-t border-[#101b33]">
+      <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 text-[8px] text-[#ededed]/50 pt-3 border-t border-[#101b33]">
         <div className="flex items-center gap-1.5 justify-center">
           <span className="w-1.5 h-1.5 bg-[#00f3ff] rounded-full animate-pulse" />
           <span>ISS SPACE LAB</span>

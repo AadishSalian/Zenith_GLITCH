@@ -60,7 +60,7 @@ export const ISSTracker: React.FC = () => {
   };
 
   return (
-    <div className="glass-panel glow-border-cyan rounded-xl p-5 flex flex-col gap-5 h-full">
+    <div className="glass-panel glow-border-cyan rounded-xl p-5 flex flex-col gap-5 h-full w-full flex-1">
       {/* Component Title */}
       <div className="flex items-center justify-between border-b border-[#00f3ff]/10 pb-3">
         <div className="flex items-center gap-2.5">
@@ -78,7 +78,7 @@ export const ISSTracker: React.FC = () => {
       {isSatellite ? (
         <div className="flex flex-col gap-5 flex-1">
           {/* Coordinates and Speed Row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-[#0b0b14]/50 border border-white/5 rounded-lg p-3 flex flex-col justify-between min-h-[80px]">
               <span className="font-mono text-[8px] uppercase tracking-wider text-[#ededed]/50 flex items-center gap-1">
                 <Target className="w-3 h-3 text-[#7c3aed]" /> Coordinates
@@ -101,7 +101,7 @@ export const ISSTracker: React.FC = () => {
           </div>
 
           {/* Elevation and Range */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-[#0b0b14]/50 border border-white/5 rounded-lg p-3">
               <div className="font-mono text-[8px] uppercase tracking-wider text-[#ededed]/50 mb-2">Topocentric Vectors</div>
               <div className="space-y-1 text-[11px] font-mono">

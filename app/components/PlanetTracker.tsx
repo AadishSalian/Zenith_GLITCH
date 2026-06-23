@@ -86,7 +86,7 @@ export const PlanetTracker: React.FC = () => {
   const isPlanetSelected = activeObj && activeObj.type === "planet";
 
   return (
-    <div className="glass-panel glow-border-pink rounded-xl p-5 flex flex-col gap-5 h-full">
+    <div className="glass-panel glow-border-pink rounded-xl p-5 flex flex-col gap-5 h-full w-full flex-1">
       {/* Component Title */}
       <div className="flex items-center justify-between border-b border-[#ff007f]/10 pb-3">
         <div className="flex items-center gap-2.5">
@@ -177,7 +177,7 @@ export const PlanetTracker: React.FC = () => {
           })()}
 
           {/* Coordinate Vectors */}
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="bg-[#0b0b14]/50 border border-white/5 rounded-lg p-3">
               <div className="font-mono text-[8px] uppercase tracking-wider text-[#ededed]/50 mb-1.5 flex items-center gap-1">
                 <Compass className="w-3 h-3 text-[#7c3aed]" /> Dome Vectors
