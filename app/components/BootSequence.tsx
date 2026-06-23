@@ -67,6 +67,8 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [hoveringBackground, setHoveringBackground] = useState<boolean>(false);
 
+
+
   // Map state
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapHoverCoords, setMapHoverCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -199,7 +201,6 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
           <div class="text-white">LNG: <span class="text-[#00f3ff] font-bold">${activeLocation.lng.toFixed(4)}°</span></div>
         </div>
       `;
-      
       markerRef.current.bindPopup(popupContent, { 
         closeButton: false,
         autoClose: false,
@@ -225,6 +226,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
     } else {
       const timer = setTimeout(() => {
         setBootPhase("completed");
+        setTimeout(onComplete, 500);
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -286,7 +288,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   };
 
   // Search Address / Coordinates
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchFeedback(null);
     if (!searchQuery.trim()) return;
@@ -405,11 +407,12 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
               exit={{ opacity: 0, y: -15 }}
               className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
             >
-              {/* Clickable Map / Globe Selector (col-span-8) */}
+              {/* Globe Selector (col-span-8) */}
               <div className="lg:col-span-8 bg-[#030816] border border-[#101b33] rounded-xl p-5 flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-[#101b33] pb-3">
                   <h2 className="text-[#00f3ff] font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Globe className="w-4 h-4" /> Cybernetic Targeting Grid
+                    <Globe className="w-3.5 h-3.5" />
+                    Targeting Array
                   </h2>
                   
                   {/* Hover position readout */}
@@ -431,7 +434,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
                   <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.04)_1px,transparent_1px)] bg-[size:10%_20%] pointer-events-none z-20" />
                 </div>
 
-                <div className="text-[10px] text-slate-500 font-mono text-center">
+                <div className="text-[9px] font-mono text-slate-500 bg-[#050b18] py-1 px-2 rounded flex items-center gap-2 w-fit">
                   💡 Zoom, drag, and click anywhere on the target array above to align geodetic tracking coordinates
                 </div>
               </div>
@@ -446,7 +449,7 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
                   </h3>
 
                   {/* Search query form */}
-                  <form onSubmit={handleSearch} className="flex flex-col gap-2.5">
+                  <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2.5">
                     <div className="relative flex items-center">
                       <input
                         type="text"

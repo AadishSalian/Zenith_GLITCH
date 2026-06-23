@@ -8,6 +8,7 @@ import { LocationPicker } from "./components/LocationPicker";
 import { SkyChart } from "./components/SkyChart";
 import { SkyRadar } from "./components/SkyRadar";
 import { FilterBar } from "./components/FilterBar";
+import { ISS_TLE } from "./components/SpaceTrackerContext";
 import { TelemetryDrawer } from "./components/TelemetryDrawer";
 import { ISSTracker } from "./components/ISSTracker";
 import { PlanetTracker } from "./components/PlanetTracker";
@@ -77,32 +78,54 @@ export default function Home() {
     return new Date(ts).toISOString().replace("T", " ").substring(0, 19) + " UTC";
   };
 
-  // Add automated logs to the status log ticker
+  const addLog = (message: string) => {
+    const timeStr = new Date().toLocaleTimeString("en-US", { hour12: false });
+    setLogs((prev) => [`[${timeStr}] ${message}`, ...prev.slice(0, 14)]);
+  };
+
+  // Background chatter
   useEffect(() => {
     if (!booted) return;
-
     const interval = setInterval(() => {
-      const { selectedObjectId: id, activeLocation: loc, positions: posMap, trackedObjects: objs, simulationTime: time } = stateRef.current;
+      const { selectedObjectId: id, activeLocation: loc, positions: posMap, trackedObjects: objs } = stateRef.current;
       const activeObj = objs.find((o) => o.id === id);
       const pos = posMap[id];
-      const timeStr = new Date(time).toISOString().substring(11, 19);
       
       const logTemplates = [
-        `Telemetry frame rx: Azimuth ${pos?.azimuth.toFixed(2)}° // Elevation ${pos?.elevation.toFixed(2)}°`,
+        `Telemetry frame rx: Azimuth ${pos?.azimuth.toFixed(2) || '...'}° // Elevation ${pos?.elevation.toFixed(2) || '...'}°`,
         `Sidereal clock tick aligned with longitude ${loc.lng.toFixed(2)}°`,
         `Solar tracker efficiency calibrated: 94.8%`,
         `Interpreting geodetic slant range: ${Math.round(pos?.range || 0).toLocaleString()} km`,
         `LST offset drift recalculation complete`,
-        `Active target locked on: ${activeObj?.name.toUpperCase()}`,
+        `Active target locked on: ${activeObj?.name?.toUpperCase() || 'UNKNOWN'}`,
         `Calibration envelope stable on ${loc.label.split(",")[0]} array`,
       ];
-
+      
       const randomLog = logTemplates[Math.floor(Math.random() * logTemplates.length)];
-      setLogs((prev) => [`[${timeStr}] ${randomLog}`, ...prev.slice(0, 14)]);
-    }, 4000);
-
+      addLog(randomLog);
+    }, 12000);
     return () => clearInterval(interval);
   }, [booted]);
+
+  // Contextual AI Responses
+  useEffect(() => {
+    if (!booted) return;
+    addLog(`> RE-ROUTING ORBITAL ARRAY TO ${activeLocation.label.toUpperCase()} SECTOR...`);
+    const timer = setTimeout(() => addLog(`> GEODETIC LOCK ESTABLISHED: ${activeLocation.lat}°N, ${activeLocation.lng}°E`), 800);
+    return () => clearTimeout(timer);
+  }, [activeLocation.lat, activeLocation.lng, activeLocation.label, booted]);
+
+  useEffect(() => {
+    if (!booted) return;
+    if (activeTab === "iss") addLog(`> INITIALIZING ISS TELEMETRY STREAM & LIVE NASA HDEV...`);
+    if (activeTab === "planets") addLog(`> CALIBRATING DEEP SPACE SENSORS... COMPENSATING FOR LIGHT DELAY`);
+    if (activeTab === "skymap") addLog(`> ENGAGING CELESTIAL DOME PROJECTION...`);
+  }, [activeTab, booted]);
+
+  useEffect(() => {
+    if (!booted) return;
+    addLog(`> TARGET ACQUIRED: TRACKING ${selectedObjectId.toUpperCase()}`);
+  }, [selectedObjectId, booted]);
 
   // Next pass pass duration & countdown formatted
   const nextPass = issPasses[0];
@@ -137,15 +160,15 @@ export default function Home() {
       {/* Dynamic Starfield Background Layers */}
       <StarfieldCanvas hoveringBackground={hoveringBackground} />
 
-      {/* LEFT NAVIGATION SIDEBAR */}
+      {/* LEFT NAVIGATION SIDEBAR / BOTTOM BAR ON MOBILE */}
       <aside 
         onMouseEnter={(e) => { e.stopPropagation(); setHoveringBackground(false); }}
-        className="w-full md:w-56 border-b md:border-b-0 md:border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex flex-col justify-between py-4 md:py-6 px-4 shrink-0 z-20 relative md:h-screen md:sticky md:top-0"
+        className="fixed bottom-0 left-0 w-full md:relative md:w-56 border-t md:border-t-0 md:border-r border-[#101b33] bg-[#030816]/95 backdrop-blur-md flex md:flex-col justify-between items-center md:items-stretch py-3 md:py-6 px-4 shrink-0 z-50 md:h-screen md:sticky md:top-0"
       >
-        <div className="flex flex-col md:flex-col gap-4 md:gap-8">
+        <div className="flex md:flex-col gap-4 md:gap-8 w-full items-center md:items-stretch">
           
-          {/* Logo Brand */}
-          <div className="flex items-center justify-between md:justify-start gap-3 px-2">
+          {/* Logo Brand (Hidden on mobile to save space for tabs) */}
+          <div className="hidden md:flex items-center justify-start gap-3 px-2">
             <div className="flex items-center gap-3">
               {/* Spinning space globe symbol */}
               <div className="w-8 h-8 rounded-full border border-dashed border-[#00f3ff] flex items-center justify-center animate-[spin_25s_linear_infinite] relative shadow-[0_0_12px_rgba(0,243,255,0.15)] bg-black/40">
@@ -171,9 +194,9 @@ export default function Home() {
           </div>
 
           {/* Navigation Links list */}
-          <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+          <nav className="flex flex-row md:flex-col justify-around md:justify-start gap-2 w-full pb-0 scrollbar-hide">
             <button 
-              onClick={() => setActiveTab("dashboard")}
+              onClick={() => { setActiveTab("dashboard"); }}
               className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
                 activeTab === "dashboard"
                   ? "sidebar-btn-active"
@@ -344,7 +367,7 @@ export default function Home() {
         </header>
 
         {/* Dashboard Grid workspace */}
-        <main className="flex-1 p-3 md:p-6 flex items-stretch max-w-7xl w-full mx-auto overflow-y-auto min-h-0">
+        <main className="flex-1 p-3 pb-24 md:p-6 flex items-stretch max-w-7xl w-full mx-auto overflow-y-auto min-h-0">
           <AnimatePresence mode="wait">
             {/* TAB 1: DASHBOARD VIEW */}
             {activeTab === "dashboard" && (

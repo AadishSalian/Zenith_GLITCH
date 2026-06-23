@@ -120,11 +120,47 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({ hoveringBackgr
     startEntryAnimation();
 
     const render = () => {
+      ctx.globalCompositeOperation = 'source-over';
       ctx.clearRect(0, 0, width, height);
       
       const { progress } = animProgressRef.current;
       const mx = mouseRef.current.x - width / 2;
       const my = mouseRef.current.y - height / 2;
+
+      // --- GOD-TIER VOLUMETRIC NEBULA EFFECT ---
+      if (progress > 0.5) { // Fade in nebula as stars explode outward
+        const nebulaOpacity = (progress - 0.5) * 2;
+        ctx.globalCompositeOperation = 'screen';
+        
+        const drawNebula = (cx: number, cy: number, r: number, color1: string, color2: string) => {
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+          grad.addColorStop(0, color1);
+          grad.addColorStop(1, color2);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.fill();
+        };
+
+        const t = Date.now() / 2000; // Slow time scale
+        
+        // Nebula 1: Deep Cyan Core
+        const n1x = width * 0.35 + Math.sin(t * 0.5) * 200 - mx * 0.04;
+        const n1y = height * 0.4 + Math.cos(t * 0.4) * 150 - my * 0.04;
+        drawNebula(n1x, n1y, width * 0.5, `rgba(0, 243, 255, ${0.12 * nebulaOpacity})`, 'rgba(0, 243, 255, 0)');
+
+        // Nebula 2: Cyber Pink / Magenta Cloud
+        const n2x = width * 0.65 + Math.cos(t * 0.3) * 250 - mx * 0.02;
+        const n2y = height * 0.6 + Math.sin(t * 0.6) * 200 - my * 0.02;
+        drawNebula(n2x, n2y, width * 0.6, `rgba(255, 0, 127, ${0.08 * nebulaOpacity})`, 'rgba(255, 0, 127, 0)');
+
+        // Nebula 3: Deep Space Purple
+        const n3x = width * 0.5 + Math.sin(t * 0.2) * 300 - mx * 0.01;
+        const n3y = height * 0.5 + Math.cos(t * 0.3) * 300 - my * 0.01;
+        drawNebula(n3x, n3y, width * 0.8, `rgba(120, 0, 255, ${0.05 * nebulaOpacity})`, 'rgba(120, 0, 255, 0)');
+      }
+
+      ctx.globalCompositeOperation = 'source-over'; // Reset for stars
 
       starsRef.current.forEach(star => {
         const config = LAYER_CONFIG[star.layer];
@@ -155,7 +191,10 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({ hoveringBackgr
 
         ctx.beginPath();
         ctx.arc(currentX + pOffsetX, currentY + pOffsetY, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 220, 255, ${currentOpacity})`;
+        
+        // Draw Stars with slight glowing tint based on layer
+        const starColor = star.layer === 1 ? '200, 255, 255' : star.layer === 2 ? '255, 220, 255' : '220, 220, 255';
+        ctx.fillStyle = `rgba(${starColor}, ${currentOpacity})`;
         ctx.fill();
       });
 
