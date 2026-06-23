@@ -60,7 +60,7 @@ export const ISSTracker: React.FC = () => {
   };
 
   return (
-    <div className="glass-panel glow-border-cyan rounded-xl p-5 flex flex-col gap-5 h-full w-full flex-1">
+    <div className="glass-panel glow-border-cyan rounded-xl p-5 flex flex-col gap-5 w-full shrink-0">
       {/* Component Title */}
       <div className="flex items-center justify-between border-b border-[#00f3ff]/10 pb-3">
         <div className="flex items-center gap-2.5">
@@ -201,12 +201,12 @@ export const ISSTracker: React.FC = () => {
             </div>
 
             {activeObj.id === "iss" ? (
-              <div className="overflow-y-auto max-h-[85px] pr-1 flex-1">
+              <div className="overflow-y-auto max-h-[85px] pr-3 flex-1">
                 <ul className="text-[10px] font-mono text-[#ededed]/80 space-y-1">
                   {crewMembers.map((member, idx) => (
                     <li key={idx} className="flex justify-between border-b border-white/5 pb-0.5 last:border-b-0">
-                      <span className="truncate pr-1">{member.split(" (")[0]}</span>
-                      <span className="text-[#00f3ff]/60 text-[9px] font-semibold">{member.split(" (")[1]?.replace(")", "")}</span>
+                      <span className="truncate pr-2">{member.split(" (")[0]}</span>
+                      <span className="text-[#00f3ff]/60 text-[9px] font-semibold shrink-0">{member.split(" (")[1]?.replace(")", "")}</span>
                     </li>
                   ))}
                 </ul>

@@ -86,7 +86,7 @@ export const PlanetTracker: React.FC = () => {
   const isPlanetSelected = activeObj && activeObj.type === "planet";
 
   return (
-    <div className="glass-panel glow-border-pink rounded-xl p-5 flex flex-col gap-5 h-full w-full flex-1">
+    <div className="glass-panel glow-border-pink rounded-xl p-5 flex flex-col gap-5 w-full shrink-0">
       {/* Component Title */}
       <div className="flex items-center justify-between border-b border-[#ff007f]/10 pb-3">
         <div className="flex items-center gap-2.5">

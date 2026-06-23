@@ -150,7 +150,7 @@ export default function Home() {
     <div 
       onMouseEnter={() => setHoveringBackground(true)}
       onMouseLeave={() => setHoveringBackground(false)}
-      className={`flex flex-col md:flex-row min-h-screen bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
+      className={`flex flex-col md:flex-row h-[100dvh] w-full bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
     >
       
       {/* BACKGROUND SCI-FI GRID OVERLAY */}

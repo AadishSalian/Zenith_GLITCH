@@ -59,10 +59,10 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
         />
       )}
 
-      {/* Slide-out drawer panel (Bottom sheet on mobile, right drawer on md+) */}
+      {/* Slide-out drawer panel (Full screen on mobile, right drawer on md+) */}
       <div
-        className={`fixed md:top-0 right-0 bottom-0 left-0 md:left-auto z-50 w-full md:w-[440px] bg-[#030816]/98 border-t md:border-t-0 md:border-l border-[#101b33] shadow-[0_-10px_50px_rgba(0,0,0,0.8)] md:shadow-[0_0_50px_rgba(0,0,0,0.8)] p-6 flex flex-col gap-6 transition-transform duration-500 ease-in-out transform ${
-          isOpen ? "translate-y-0 md:translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:translate-x-full"
+        className={`fixed top-0 right-0 bottom-0 left-0 md:left-auto z-[60] w-full md:w-[440px] bg-[#030816]/98 border-t md:border-t-0 md:border-l border-[#101b33] shadow-[0_-10px_50px_rgba(0,0,0,0.8)] md:shadow-[0_0_50px_rgba(0,0,0,0.8)] p-6 flex flex-col gap-6 transition-transform duration-500 ease-in-out transform ${
+          isOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:translate-x-full"
         }`}
       >
         {/* Drawer Header */}
@@ -87,7 +87,7 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
         </div>
 
         {/* Dynamic Telemetry Component Rendering */}
-        <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto pr-3 flex flex-col gap-4">
           {activeObj.type === "satellite" ? (
             <ISSTracker />
           ) : (
@@ -108,33 +108,54 @@ export const TelemetryDrawer: React.FC<TelemetryDrawerProps> = ({ isOpen, onClos
 
           {/* Pass Alert Button */}
           {activeObj.id === "iss" && (
-             <div className="flex gap-3 mt-2">
+             <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <button 
-                onClick={() => {
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  const originalText = btn.innerText;
                   if ("Notification" in window) {
                     Notification.requestPermission().then(p => {
                       if (p === "granted") {
                         new Notification("Pass Alert Set", { body: "You will be notified when ISS is above 10 deg." });
+                        btn.innerText = "ALERT SET!";
+                        btn.classList.add("text-emerald-400", "border-emerald-500");
                       } else {
-                        alert("Please enable notifications to receive pass alerts.");
+                        btn.innerText = "PERMISSION DENIED";
+                        btn.classList.add("text-rose-400", "border-rose-500");
                       }
+                      setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.remove("text-emerald-400", "border-emerald-500", "text-rose-400", "border-rose-500");
+                      }, 3000);
                     });
                   } else {
-                    alert("Your browser does not support Web Push notifications.");
+                    btn.innerText = "NOT SUPPORTED";
+                    btn.classList.add("text-rose-400", "border-rose-500");
+                    setTimeout(() => {
+                      btn.innerText = originalText;
+                      btn.classList.remove("text-rose-400", "border-rose-500");
+                    }, 3000);
                   }
                 }}
                 className="flex-1 bg-slate-900/50 hover:bg-emerald-900/30 border border-[#101b33] hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 transition-all rounded-lg p-3 text-xs font-bold tracking-widest uppercase text-center cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0)] hover:shadow-[0_0_15px_rgba(16,185,129,0.1)]"
               >
-                Set Pass Alert (Web Push)
+                Set Pass Alert
               </button>
               <button 
-                onClick={() => {
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  const originalText = btn.innerText;
                   navigator.clipboard.writeText(window.location.href);
-                  alert("Link copied to clipboard!");
+                  btn.innerText = "COPIED!";
+                  btn.classList.add("text-blue-400", "border-blue-500");
+                  setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove("text-blue-400", "border-blue-500");
+                  }, 2000);
                 }}
                 className="flex-1 bg-slate-900/50 hover:bg-blue-900/30 border border-[#101b33] hover:border-blue-500/50 text-slate-300 hover:text-blue-400 transition-all rounded-lg p-3 text-xs font-bold tracking-widest uppercase text-center cursor-pointer"
               >
-                Share View (Copy Link)
+                Share View
               </button>
             </div>
           )}
