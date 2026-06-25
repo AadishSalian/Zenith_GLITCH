@@ -107,6 +107,3 @@ While Zenith GLITCH is fully operational, the following upgrades are planned for
 4. **Push Notifications:** Implementing PWA features to send users browser notifications 5 minutes before the ISS flies over their exact location.
 
 ---
-<div align="center">
-  <i>"Ad Astra Per Aspera" // Zenith GLITCH Command</i>
-</div>
