@@ -220,3 +220,5 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({ hoveringBackgr
 };
 
 export default StarfieldCanvas;
+
+

@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSpaceTracker } from "./components/SpaceTrackerContext";
 import { BootSequence } from "./components/BootSequence";
-import { StarfieldCanvas } from "./components/StarfieldCanvas";
+import SpaceBackground from "@/components/SpaceBackground";
 import { LocationPicker } from "./components/LocationPicker";
 import { SkyChart } from "./components/SkyChart";
 import { SkyRadar } from "./components/SkyRadar";
 import { FilterBar } from "./components/FilterBar";
-import { ISS_TLE } from "./components/SpaceTrackerContext";
+
 import { TelemetryDrawer } from "./components/TelemetryDrawer";
 import { ISSTracker } from "./components/ISSTracker";
 import { PlanetTracker } from "./components/PlanetTracker";
@@ -150,7 +150,7 @@ export default function Home() {
     <div 
       onMouseEnter={() => setHoveringBackground(true)}
       onMouseLeave={() => setHoveringBackground(false)}
-      className={`flex flex-col md:flex-row h-[100dvh] w-full bg-[#020612] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
+      className={`flex flex-col md:flex-row h-[100dvh] w-full bg-transparent text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff] ${crtEnabled ? "crt-screen" : ""} relative overflow-hidden`}
     >
       
       {/* BACKGROUND SCI-FI GRID OVERLAY */}
@@ -158,7 +158,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-to-tr from-[#020612] via-transparent to-[#020612]/30 pointer-events-none z-0" />
 
       {/* Dynamic Starfield Background Layers */}
-      <StarfieldCanvas hoveringBackground={hoveringBackground} />
+      <SpaceBackground />
 
       {/* LEFT NAVIGATION SIDEBAR / BOTTOM BAR ON MOBILE */}
       <aside 
@@ -194,7 +194,7 @@ export default function Home() {
           </div>
 
           {/* Navigation Links list */}
-          <nav className="flex flex-row md:flex-col justify-around md:justify-start gap-2 w-full pb-0 scrollbar-hide">
+          <nav className="flex flex-row md:flex-col justify-start md:justify-start gap-2 w-full pb-0 scrollbar-hide overflow-x-auto snap-x">
             <button 
               onClick={() => { setActiveTab("dashboard"); }}
               className={`shrink-0 md:w-full py-2.5 px-3 rounded-lg flex items-center gap-3 font-semibold text-xs tracking-wider text-left outline-none cursor-pointer transition-all duration-300 ${
@@ -281,7 +281,7 @@ export default function Home() {
       </aside>
 
       {/* MAIN CONTAINER PANEL */}
-      <div className="flex-1 flex flex-col min-w-0 z-10 relative">
+      <div className="flex-1 flex flex-col min-w-0 z-10 relative h-full min-h-0 overflow-hidden">
         
         {/* Top Control Header */}
         <header 
@@ -367,7 +367,7 @@ export default function Home() {
         </header>
 
         {/* Dashboard Grid workspace */}
-        <main className="flex-1 p-3 pb-24 md:p-6 flex items-stretch max-w-7xl w-full mx-auto overflow-y-auto min-h-0">
+        <main className="flex-1 p-3 pb-24 md:p-6 flex flex-col max-w-7xl w-full mx-auto overflow-y-auto min-h-0">
           <AnimatePresence mode="wait">
             {/* TAB 1: DASHBOARD VIEW */}
             {activeTab === "dashboard" && (
@@ -752,3 +752,5 @@ export default function Home() {
     </div>
   );
 }
+
+

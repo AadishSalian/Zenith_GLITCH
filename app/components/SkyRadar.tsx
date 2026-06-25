@@ -184,8 +184,21 @@ export const SkyRadar: React.FC = () => {
         className="relative cursor-crosshair flex items-center justify-center p-4 border border-[#101b33] rounded-full bg-[#050b18]/80 overflow-hidden shadow-[0_0_20px_rgba(0,243,255,0.05)]"
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-[#7c3aed]/2 via-transparent to-[#00f3ff]/2 pointer-events-none rounded-full" />
+        
+        {/* Radar Sweep Animation */}
+        <div className="absolute inset-0 rounded-full pointer-events-none overflow-hidden z-20">
+          <div className="absolute w-[50%] h-[50%] top-0 right-0 origin-bottom-left animate-[spin_6s_linear_infinite] bg-gradient-to-bl from-transparent via-[#00f3ff]/5 to-[#00f3ff]/20 border-l border-[#00f3ff]/40 shadow-[-1px_0_8px_rgba(0,243,255,0.2)]" />
+        </div>
+        
+        {/* Crosshair target in center */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#00f3ff] rounded-full animate-pulse shadow-[0_0_10px_#00f3ff] z-30 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 border border-[#00f3ff]/50 rounded-full z-30 pointer-events-none" />
+
         <svg ref={svgRef} width="400" height="400" className="relative z-10" />
       </div>
     </div>
   );
 };
+
+
+

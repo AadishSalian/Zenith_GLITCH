@@ -58,3 +58,5 @@ const MapComponent: React.FC<MapProps> = ({ activeLocation, setActiveLocation })
 };
 
 export default MapComponent;
+
+

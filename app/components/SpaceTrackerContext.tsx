@@ -197,11 +197,11 @@ function calculatePlanetAzimuthElevation(
   const d2r = Math.PI / 180;
   const r2d = 180 / Math.PI;
 
-  // Sidereal clock approximation: Earth rotates 360 degrees in 24 hours.
-  // We use the observer's longitude and current time.
-  const msInDay = 24 * 60 * 60 * 1000;
-  const dayFraction = (timeMs % msInDay) / msInDay;
-  const lstDeg = (dayFraction * 360 + obsLng + 180) % 360;
+  // Calculate Greenwich Mean Sidereal Time (GMST) accurately using satellite.js
+  const gmstRads = gstime(new Date(timeMs));
+  const lstRads = gmstRads + (obsLng * d2r);
+  let lstDeg = (lstRads * r2d) % 360;
+  if (lstDeg < 0) lstDeg += 360;
 
   const raDeg = raHours * 15;
   let haDeg = lstDeg - raDeg;
@@ -264,6 +264,68 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [dynamicTrackedObjects, setDynamicTrackedObjects] = useState<TrackedObject[]>(TrackedObjects);
   const [liveIss, setLiveIss] = useState<{latitude: number, longitude: number} | null>(null);
   const [positions, setPositions] = useState<Record<string, ObjectPosition>>({});
+  const [issPasses, setIssPasses] = useState<Array<{ start: number; maxEl: number; durationSec: number }>>([]);
+
+  // Fetch ISS passes from N2YO
+  useEffect(() => {
+    async function fetchPasses() {
+      try {
+        const res = await fetch(`/api/passes?lat=${activeLocation.lat}&lng=${activeLocation.lng}`);
+        const data = await res.json();
+        if (data.passes && Array.isArray(data.passes)) {
+          const nextPasses = data.passes.map((p: any) => ({
+            start: p.startUTC * 1000,
+            maxEl: p.maxEl,
+            durationSec: p.endUTC - p.startUTC
+          }));
+          setIssPasses(nextPasses);
+        }
+      } catch (err) {
+        console.error("Failed to fetch passes:", err);
+      }
+    }
+    fetchPasses();
+  }, [activeLocation.lat, activeLocation.lng]);
+
+  // Fetch live planet RA/DEC from NASA JPL
+  useEffect(() => {
+    async function fetchPlanets() {
+      const planetIds: Record<string, string> = {
+        mars: "499",
+        venus: "299",
+        jupiter: "599",
+        saturn: "699"
+      };
+
+      const newObjects = [...dynamicTrackedObjects];
+      let updated = false;
+
+      for (const [id, target_id] of Object.entries(planetIds)) {
+        try {
+          const res = await fetch(`/api/horizons?target_id=${target_id}`);
+          if (res.ok) {
+            const data = await res.json();
+            const objIndex = newObjects.findIndex(o => o.id === id);
+            if (objIndex !== -1 && data.ra !== undefined && data.dec !== undefined) {
+              newObjects[objIndex] = { ...newObjects[objIndex], ra: data.ra, dec: data.dec };
+              updated = true;
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to fetch JPL data for ${id}:`, err);
+        }
+      }
+
+      if (updated) {
+        setDynamicTrackedObjects(newObjects);
+      }
+    }
+    
+    // Only run when dynamicTrackedObjects is initially populated with planets
+    if (dynamicTrackedObjects.find(o => o.type === "planet" && o.ra === TrackedObjects.find(t => t.id === o.id)?.ra)) {
+      fetchPlanets();
+    }
+  }, []);
 
   // Fetch ISS Live Data
   useEffect(() => {
@@ -432,30 +494,7 @@ export const SpaceTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => clearInterval(interval);
   }, [simulationSpeed, trackingActive, simulationTime, activeLocation, dynamicTrackedObjects, liveIss, setSimulationTime]);
 
-  // Derive upcoming passes for ISS based on active coordinates
-  const issPasses = React.useMemo(() => {
-    // Generate simulated upcoming passes for the ISS above active coordinates
-    const passes = [];
-    const baseTime = simulationTime;
-    const periodMs = 92.8 * 60 * 1000; // 92.8 minutes
-    
-    // Check next 4 orbits
-    for (let i = 1; i <= 4; i++) {
-      const passTime = baseTime + i * periodMs - (activeLocation.lat * 120000 + activeLocation.lng * 80000) % 600000;
-      // Generate elevation max angle (15 to 88 degrees)
-      const seed = Math.sin(activeLocation.lat * i + activeLocation.lng) * 0.5 + 0.5;
-      const maxEl = Math.round(15 + seed * 73);
-      const durationSec = Math.round(300 + seed * 300); // 5 to 10 mins pass
-
-      passes.push({
-        start: passTime,
-        maxEl,
-        durationSec,
-      });
-    }
-
-    return passes;
-  }, [activeLocation, simulationTime]);
+  // Real upcoming passes are now fetched from N2YO API in useEffect
 
   return (
     <SpaceTrackerContext.Provider
@@ -494,4 +533,6 @@ export const useSpaceTracker = () => {
   }
   return context;
 };
+
+
 

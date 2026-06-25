@@ -280,3 +280,5 @@ export const LocationConfirmCard: React.FC<LocationConfirmCardProps> = ({
     </AnimatePresence>
   );
 };
+
+

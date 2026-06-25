@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSpaceTracker } from "./SpaceTrackerContext";
 import { Eye, ShieldAlert, Sparkles, Orbit, Compass } from "lucide-react";
 
@@ -20,6 +20,29 @@ export const PlanetTracker: React.FC = () => {
   const handlePlanetSelect = (id: string) => {
     setSelectedObjectId(id);
   };
+
+  const [wikiDesc, setWikiDesc] = useState<string>("");
+  const [wikiLoading, setWikiLoading] = useState(false);
+
+  // Fetch Wikipedia summary dynamically
+  useEffect(() => {
+    if (activeObj && activeObj.type === "planet") {
+      setWikiLoading(true);
+      fetch(`/api/wiki?query=${encodeURIComponent(activeObj.name)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.extract) {
+            setWikiDesc(data.extract);
+          } else {
+            setWikiDesc(activeObj.description || "");
+          }
+        })
+        .catch(() => {
+          setWikiDesc(activeObj.description || "Database error.");
+        })
+        .finally(() => setWikiLoading(false));
+    }
+  }, [activeObj?.id, activeObj?.name, activeObj?.description]);
 
   const getVisibilityScore = (elevation: number) => {
     if (elevation <= 0) return { label: "Horizon Blocked", color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" };
@@ -147,8 +170,14 @@ export const PlanetTracker: React.FC = () => {
               <p className="text-[9px] text-[#ededed]/50 uppercase tracking-widest">
                 RA: {activeObj.ra}h // DEC: {activeObj.dec}°
               </p>
-              <div className="text-[10px] text-[#ededed]/70 leading-relaxed font-sans max-h-[50px] overflow-y-auto">
-                {activeObj.description}
+              <div className="text-[10px] text-[#ededed]/70 leading-relaxed font-sans max-h-[50px] overflow-y-auto pr-2">
+                {wikiLoading ? (
+                  <span className="animate-pulse flex items-center gap-1.5 text-[#38bdf8]">
+                    Accessing encyclopedic databanks...
+                  </span>
+                ) : (
+                  wikiDesc || activeObj.description
+                )}
               </div>
             </div>
           </div>
@@ -250,3 +279,5 @@ export const PlanetTracker: React.FC = () => {
     </div>
   );
 };
+
+

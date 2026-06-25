@@ -58,3 +58,5 @@ export const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({ lat, lon }
     </div>
   );
 };
+
+

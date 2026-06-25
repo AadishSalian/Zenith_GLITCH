@@ -43,13 +43,23 @@ export const ISSTracker: React.FC = () => {
     "Alexander Grebenkin (Roscosmos)",
   ];
 
-  // Next pass computation details
   const nextPass = issPasses[0];
-  const timeToPass = nextPass ? nextPass.start - simulationTime : 0;
-  const isPassActive = position.isAboveHorizon;
+  let timeToPass = -1;
+  let isPassActive = position.isAboveHorizon;
+  
+  if (nextPass) {
+    if (simulationTime >= nextPass.start && simulationTime <= nextPass.start + (nextPass.durationSec * 1000)) {
+      timeToPass = 0; // Currently in transit
+      isPassActive = true;
+    } else {
+      timeToPass = nextPass.start - simulationTime;
+      if (timeToPass < 0) timeToPass = -1; // Pass already happened
+    }
+  }
 
   const formatCountdown = (ms: number) => {
-    if (ms <= 0) return "TRANSIT ACTIVE";
+    if (ms < 0) return "NO PASS DETECTED";
+    if (ms === 0) return "TRANSIT ACTIVE";
     const sec = Math.floor((ms / 1000) % 60);
     const min = Math.floor((ms / (1000 * 60)) % 60);
     const hrs = Math.floor((ms / (1000 * 60 * 60)) % 24);
@@ -246,3 +256,5 @@ export const ISSTracker: React.FC = () => {
     </div>
   );
 };
+
+

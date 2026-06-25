@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="en"
       className={`${orbitron.variable} ${inter.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-[#020205] text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff]">
+      <body className="min-h-full flex flex-col text-[#ededed] font-sans selection:bg-[#00f3ff]/30 selection:text-[#00f3ff]">
         <SpaceTrackerProvider>
           {children}
         </SpaceTrackerProvider>
@@ -39,3 +39,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

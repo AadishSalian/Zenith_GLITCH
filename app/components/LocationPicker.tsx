@@ -18,6 +18,11 @@ export const LocationPicker: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<boolean>(false);
   const [cloudCover, setCloudCover] = useState<string>("--");
+  const [tzData, setTzData] = useState<{ offsetName: string; offsetStr: string; offsetSecs: number | null }>({
+    offsetName: "Detecting...",
+    offsetStr: "GMT --:--",
+    offsetSecs: null
+  });
 
   // Sync inputs with active location changes
   useEffect(() => {
@@ -44,6 +49,41 @@ export const LocationPicker: React.FC = () => {
     fetchWeather();
     const interval = setInterval(fetchWeather, 60000);
     return () => clearInterval(interval);
+  }, [activeLocation.lat, activeLocation.lng]);
+
+  // Fetch Timezone from TimeZoneDB
+  useEffect(() => {
+    async function fetchTimezone() {
+      try {
+        setTzData(prev => ({ ...prev, offsetName: "Fetching..." }));
+        const res = await fetch(`/api/timezone?lat=${activeLocation.lat}&lng=${activeLocation.lng}`);
+        const data = await res.json();
+        
+        if (data.status === "OK") {
+          const offsetHrs = data.gmtOffset / 3600;
+          const sign = offsetHrs >= 0 ? "+" : "";
+          const hrPart = Math.floor(Math.abs(offsetHrs)).toString().padStart(2, "0");
+          const minPart = ((Math.abs(offsetHrs) % 1) * 60).toString().padStart(2, "0");
+          
+          let name = data.zoneName || "Local Time";
+          if (name.includes("/")) name = name.split("/").pop() || name;
+          name = name.replace(/_/g, " ");
+
+          setTzData({
+            offsetName: `${name} (${data.abbreviation})`,
+            offsetStr: `GMT ${sign}${hrPart}:${minPart}`,
+            offsetSecs: data.gmtOffset
+          });
+        }
+      } catch (e) {
+        setTzData({
+          offsetName: "Offline/Unknown",
+          offsetStr: "GMT --:--",
+          offsetSecs: 0
+        });
+      }
+    }
+    fetchTimezone();
   }, [activeLocation.lat, activeLocation.lng]);
 
   // Formatter for coordinates display inside buttons
@@ -144,27 +184,11 @@ export const LocationPicker: React.FC = () => {
     const timer = setInterval(() => {
       const now = new Date();
       
-      // Calculate local time for active location
-      // By default using local timezone of browser, or computing offset if preset is selected
-      let localString = now.toLocaleTimeString("en-US", { hour12: false });
-      
-      if (activeLocation.label === "Kennedy Space Center" || activeLocation.label === "Starbase, Boca Chica") {
-        // US East/Central (approx offset -5 / -6)
-        const offset = activeLocation.label === "Kennedy Space Center" ? -5 : -6;
-        const targetTime = new Date(now.getTime() + (now.getTimezoneOffset() + offset * 60) * 60000);
-        localString = targetTime.toLocaleTimeString("en-US", { hour12: false });
-      } else if (activeLocation.label === "Baikonur Cosmodrome") {
-        const targetTime = new Date(now.getTime() + (now.getTimezoneOffset() + 5 * 60) * 60000);
-        localString = targetTime.toLocaleTimeString("en-US", { hour12: false });
-      } else if (activeLocation.label === "Guiana Space Centre") {
-        const targetTime = new Date(now.getTime() + (now.getTimezoneOffset() - 3 * 60) * 60000);
-        localString = targetTime.toLocaleTimeString("en-US", { hour12: false });
-      } else if (activeLocation.label === "Esrange Space Center") {
-        const targetTime = new Date(now.getTime() + (now.getTimezoneOffset() + 2 * 60) * 60000);
-        localString = targetTime.toLocaleTimeString("en-US", { hour12: false });
-      } else if (activeLocation.label === "Tanegashima Space Center") {
-        const targetTime = new Date(now.getTime() + (now.getTimezoneOffset() + 9 * 60) * 60000);
-        localString = targetTime.toLocaleTimeString("en-US", { hour12: false });
+      // Calculate local time using TimeZoneDB exact offset
+      let localString = "--:--:--";
+      if (tzData.offsetSecs !== null) {
+        const shiftedMs = now.getTime() + (tzData.offsetSecs * 1000);
+        localString = new Date(shiftedMs).toISOString().substring(11, 19);
       }
 
       const utcString = now.toISOString().substring(11, 19);
@@ -175,7 +199,7 @@ export const LocationPicker: React.FC = () => {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [activeLocation]);
+  }, [activeLocation, tzData.offsetSecs]);
 
   // Derived elevation metadata based on location name
   const getElevation = () => {
@@ -188,27 +212,7 @@ export const LocationPicker: React.FC = () => {
     return "538 m";
   };
 
-  // Derived timezone metadata based on location name
-  const getTimezone = () => {
-    if (activeLocation.label === "Kennedy Space Center") return { offset: "GMT -5:00", name: "Eastern Standard Time" };
-    if (activeLocation.label === "Starbase, Boca Chica") return { offset: "GMT -6:00", name: "Central Standard Time" };
-    if (activeLocation.label === "Baikonur Cosmodrome") return { offset: "GMT +5:00", name: "West Kazakhstan Time" };
-    if (activeLocation.label === "Guiana Space Centre") return { offset: "GMT -3:00", name: "French Guiana Time" };
-    if (activeLocation.label === "Esrange Space Center") return { offset: "GMT +2:00", name: "Central European Time" };
-    if (activeLocation.label === "Tanegashima Space Center") return { offset: "GMT +9:00", name: "Japan Standard Time" };
-    
-    // Fallback using browser data
-    const offsetMin = -new Date().getTimezoneOffset();
-    const offsetHr = Math.floor(Math.abs(offsetMin) / 60);
-    const sign = offsetMin >= 0 ? "+" : "-";
-    const zoneName = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/")[1]?.replace("_", " ") || "Local Time";
-    return {
-      offset: `GMT ${sign}${offsetHr}:00`,
-      name: zoneName,
-    };
-  };
-
-  const tz = getTimezone();
+  // Remove hardcoded getTimezone function
 
   return (
     <div className="bg-[#030816] border border-[#101b33] rounded-xl p-5 flex flex-col gap-5 h-full select-none font-sans">
@@ -335,10 +339,10 @@ export const LocationPicker: React.FC = () => {
         <div className="bg-[#050b18]/60 border border-slate-800/80 rounded-lg p-3 flex flex-col gap-0.5">
           <span className="text-[9px] uppercase tracking-wider text-[#38bdf8] font-bold">Timezone</span>
           <span className="text-white font-mono text-xs font-semibold leading-none py-0.5 mt-0.5 truncate">
-            {tz.offset}
+            {tzData.offsetStr}
           </span>
           <span className="text-[8px] text-slate-500 font-medium leading-none mt-0.5 truncate">
-            {tz.name}
+            {tzData.offsetName}
           </span>
         </div>
 
@@ -399,3 +403,5 @@ export const LocationPicker: React.FC = () => {
     </div>
   );
 };
+
+

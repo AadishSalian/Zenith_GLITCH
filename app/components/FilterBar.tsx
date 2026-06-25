@@ -65,7 +65,7 @@ export const FilterBar: React.FC = () => {
             type="datetime-local" 
             value={new Date(simulationTime).toISOString().slice(0, 16)}
             onChange={handleTimeChange}
-            className="w-full bg-[#030816] border border-[#101b33] rounded p-2 text-white font-mono text-xs outline-none focus:border-fuchsia-500/50 transition-colors"
+            className="w-full bg-[#030816]/75 backdrop-blur-md border border-[#101b33] rounded p-2 text-white font-mono text-xs outline-none focus:border-fuchsia-500/50 transition-colors"
           />
           <button 
             onClick={() => setSimulationTime(Date.now())}
@@ -78,3 +78,5 @@ export const FilterBar: React.FC = () => {
     </div>
   );
 };
+
+
