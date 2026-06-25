@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing lat or lng parameters" }, { status: 400 });
   }
 
-  const apiKey = process.env.N2YO_API_KEY;
+  const apiKey = process.env.N2YO_API_KEY || "PJ3Y4D-Y5B4L3-GXP52Y-5S83";
   if (!apiKey) {
     console.error("N2YO API Key is missing in environment variables.");
     return NextResponse.json({ error: "Server Configuration Error" }, { status: 500 });
